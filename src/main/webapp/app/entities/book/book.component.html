@@ -1,0 +1,91 @@
+<div>
+    <h2 id="page-heading">
+        <span>Books</span>
+        <button id="jh-create-entity" class="btn btn-primary float-right jh-create-entity create-book" [routerLink]="['/book/new']">
+            <fa-icon [icon]="'plus'"></fa-icon>
+            <span >
+            Create a new Book
+            </span>
+        </button>
+    </h2>
+    <jhi-alert></jhi-alert>
+    <br/>
+    <div class="alert alert-warning" *ngIf="books?.length === 0">
+        <span>No books found</span>
+    </div>
+    <div class="table-responsive" *ngIf="books?.length > 0">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+            <th><span>ID</span></th>
+            <th><span>I SBN</span></th>
+            <th><span>Title</span></th>
+            <th><span>Price</span></th>
+            <th><span>Number Of Pages</span></th>
+            <th><span>Publish Year</span></th>
+            <th><span>Cover Url</span></th>
+            <th><span>Publisher</span></th>
+            <th><span>Author</span></th>
+            <th><span>Category</span></th>
+            <th><span>Order</span></th>
+            <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr *ngFor="let book of books ;trackBy: trackId">
+                <td><a [routerLink]="['/book', book.id, 'view' ]">{{book.id}}</a></td>
+                <td>{{book.iSBN}}</td>
+                <td>{{book.title}}</td>
+                <td>{{book.price}}</td>
+                <td>{{book.numberOfPages}}</td>
+                <td>{{book.publishYear}}</td>
+                <td>{{book.coverUrl}}</td>
+                <td>
+                    <div *ngIf="book.publisher">
+                        <a [routerLink]="['/publisher', book.publisher?.id, 'view' ]" >{{book.publisher?.name}}</a>
+                    </div>
+                </td>
+                <td>
+                    <span *ngFor="let author of book.authors; let last = last">
+                            <a class="form-control-static" [routerLink]="['/author', author?.id, 'view' ]">{{author.firstName}}</a>{{last ? '' : ', '}}
+                        </span>
+                </td>
+                <td>
+                    <span *ngFor="let category of book.categories; let last = last">
+                            <a class="form-control-static" [routerLink]="['/category', category?.id, 'view' ]">{{category.name}}</a>{{last ? '' : ', '}}
+                        </span>
+                </td>
+                <td>
+                    <div *ngIf="book.order">
+                        <a [routerLink]="['/order', book.order?.id, 'view' ]" >{{book.order?.id}}</a>
+                    </div>
+                </td>
+                <td class="text-right">
+                    <div class="btn-group">
+                        <button type="submit"
+                                [routerLink]="['/book', book.id, 'view' ]"
+                                class="btn btn-info btn-sm">
+                            <fa-icon [icon]="'eye'"></fa-icon>
+                            <span class="d-none d-md-inline">View</span>
+                        </button>
+                        <button type="submit"
+                                [routerLink]="['/book', book.id, 'edit']"
+                                class="btn btn-primary btn-sm">
+                            <fa-icon [icon]="'pencil-alt'"></fa-icon>
+                            <span class="d-none d-md-inline">Edit</span>
+                        </button>
+                        <button type="submit"
+                                [routerLink]="['/book', { outlets: { popup: book.id + '/delete'} }]"
+                                replaceUrl="true"
+                                queryParamsHandling="merge"
+                                class="btn btn-danger btn-sm">
+                            <fa-icon [icon]="'times'"></fa-icon>
+                            <span class="d-none d-md-inline">Delete</span>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

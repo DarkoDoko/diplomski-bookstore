@@ -1,0 +1,49 @@
+entity Customer {
+	
+}
+
+entity Address {
+	address1 String,
+    address2 String,
+    city String,
+    postcode String required maxlength(10),
+    country String required
+}
+entity Book {
+	ISBN String required,
+    title String required,
+    price Double required,
+    numberOfPages Integer,
+    publishYear String required minlength(4) maxlength(4),
+    coverUrl String
+}
+
+entity Author {
+	firstName String required,
+    lastName String required
+}
+
+entity Publisher {
+	name String required unique maxlength(100)
+}
+
+entity Category {
+	name String required
+}
+
+entity Order {}
+
+relationship OneToOne {
+	Book{publisher(name)} to Publisher
+}
+
+relationship OneToMany {
+	Customer{address} to Address{customer}
+    Customer{order} to Order{customer}
+    Order{book} to Book{order}
+}
+
+relationship ManyToMany {
+ Book{author(firstName)} to Author{book}
+ Book{category(name)} to Category{book}
+}

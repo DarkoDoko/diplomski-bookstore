@@ -43,6 +43,20 @@ public class CacheConfiguration {
             createCache(cm, com.ddoko.domain.User.class.getName());
             createCache(cm, com.ddoko.domain.Authority.class.getName());
             createCache(cm, com.ddoko.domain.User.class.getName() + ".authorities");
+            createCache(cm, com.ddoko.domain.Customer.class.getName());
+            createCache(cm, com.ddoko.domain.Customer.class.getName() + ".addresses");
+            createCache(cm, com.ddoko.domain.Customer.class.getName() + ".orders");
+            createCache(cm, com.ddoko.domain.Address.class.getName());
+            createCache(cm, com.ddoko.domain.Book.class.getName());
+            createCache(cm, com.ddoko.domain.Book.class.getName() + ".authors");
+            createCache(cm, com.ddoko.domain.Book.class.getName() + ".categories");
+            createCache(cm, com.ddoko.domain.Author.class.getName());
+            createCache(cm, com.ddoko.domain.Author.class.getName() + ".books");
+            createCache(cm, com.ddoko.domain.Publisher.class.getName());
+            createCache(cm, com.ddoko.domain.Category.class.getName());
+            createCache(cm, com.ddoko.domain.Category.class.getName() + ".books");
+            createCache(cm, com.ddoko.domain.Order.class.getName());
+            createCache(cm, com.ddoko.domain.Order.class.getName() + ".books");
             // jhipster-needle-ehcache-add-entry
         };
     }
