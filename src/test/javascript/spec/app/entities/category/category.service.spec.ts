@@ -23,7 +23,7 @@ describe('Service Tests', () => {
       service = injector.get(CategoryService);
       httpMock = injector.get(HttpTestingController);
 
-      elemDefault = new Category(0, 'AAAAAAA');
+      elemDefault = new Category(0, 'AAAAAAA', 'AAAAAAA');
     });
 
     describe('Service methods', () => {
@@ -59,7 +59,8 @@ describe('Service Tests', () => {
       it('should update a Category', async () => {
         const returnedFromService = Object.assign(
           {
-            name: 'BBBBBB'
+            name: 'BBBBBB',
+            description: 'BBBBBB'
           },
           elemDefault
         );
@@ -77,7 +78,8 @@ describe('Service Tests', () => {
       it('should return a list of Category', async () => {
         const returnedFromService = Object.assign(
           {
-            name: 'BBBBBB'
+            name: 'BBBBBB',
+            description: 'BBBBBB'
           },
           elemDefault
         );

@@ -14,16 +14,16 @@ import java.util.Optional;
  * Spring Data  repository for the Book entity.
  */
 @Repository
-public interface BookRepository extends JpaRepository<Book, Long> {
+public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificationExecutor<Book> {
 
-    @Query(value = "select distinct book from Book book left join fetch book.authors left join fetch book.categories",
+    @Query(value = "select distinct book from Book book left join fetch book.authors",
         countQuery = "select count(distinct book) from Book book")
     Page<Book> findAllWithEagerRelationships(Pageable pageable);
 
-    @Query("select distinct book from Book book left join fetch book.authors left join fetch book.categories")
+    @Query("select distinct book from Book book left join fetch book.authors")
     List<Book> findAllWithEagerRelationships();
 
-    @Query("select book from Book book left join fetch book.authors left join fetch book.categories where book.id =:id")
+    @Query("select book from Book book left join fetch book.authors where book.id =:id")
     Optional<Book> findOneWithEagerRelationships(@Param("id") Long id);
 
 }

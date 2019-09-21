@@ -4,8 +4,10 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
 import javax.persistence.*;
+import javax.validation.constraints.*;
 
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -24,11 +26,20 @@ public class Order implements Serializable {
     @SequenceGenerator(name = "sequenceGenerator")
     private Long id;
 
+    @NotNull
+    @Column(name = "placed_at", nullable = false)
+    private Instant placedAt;
+
+    @NotNull
+    @Column(name = "code", nullable = false)
+    private String code;
+
     @OneToMany(mappedBy = "order")
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-    private Set<Book> books = new HashSet<>();
+    private Set<OrderItem> orderItems = new HashSet<>();
 
-    @ManyToOne
+    @ManyToOne(optional = false)
+    @NotNull
     @JsonIgnoreProperties("orders")
     private Customer customer;
 
@@ -41,29 +52,55 @@ public class Order implements Serializable {
         this.id = id;
     }
 
-    public Set<Book> getBooks() {
-        return books;
+    public Instant getPlacedAt() {
+        return placedAt;
     }
 
-    public Order books(Set<Book> books) {
-        this.books = books;
+    public Order placedAt(Instant placedAt) {
+        this.placedAt = placedAt;
         return this;
     }
 
-    public Order addBook(Book book) {
-        this.books.add(book);
-        book.setOrder(this);
+    public void setPlacedAt(Instant placedAt) {
+        this.placedAt = placedAt;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public Order code(String code) {
+        this.code = code;
         return this;
     }
 
-    public Order removeBook(Book book) {
-        this.books.remove(book);
-        book.setOrder(null);
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public Set<OrderItem> getOrderItems() {
+        return orderItems;
+    }
+
+    public Order orderItems(Set<OrderItem> orderItems) {
+        this.orderItems = orderItems;
         return this;
     }
 
-    public void setBooks(Set<Book> books) {
-        this.books = books;
+    public Order addOrderItem(OrderItem orderItem) {
+        this.orderItems.add(orderItem);
+        orderItem.setOrder(this);
+        return this;
+    }
+
+    public Order removeOrderItem(OrderItem orderItem) {
+        this.orderItems.remove(orderItem);
+        orderItem.setOrder(null);
+        return this;
+    }
+
+    public void setOrderItems(Set<OrderItem> orderItems) {
+        this.orderItems = orderItems;
     }
 
     public Customer getCustomer() {
@@ -100,6 +137,8 @@ public class Order implements Serializable {
     public String toString() {
         return "Order{" +
             "id=" + getId() +
+            ", placedAt='" + getPlacedAt() + "'" +
+            ", code='" + getCode() + "'" +
             "}";
     }
 }

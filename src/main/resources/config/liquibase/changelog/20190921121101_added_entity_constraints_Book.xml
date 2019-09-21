@@ -26,23 +26,11 @@
                                  referencedColumnNames="id"
                                  referencedTableName="author"/>
         
-        <addForeignKeyConstraint baseColumnNames="book_id"
-                                 baseTableName="book_category"
-                                 constraintName="fk_book_category_book_id"
-                                 referencedColumnNames="id"
-                                 referencedTableName="book"/>
-
         <addForeignKeyConstraint baseColumnNames="category_id"
-                                 baseTableName="book_category"
-                                 constraintName="fk_book_category_category_id"
+                                 baseTableName="book"
+                                 constraintName="fk_book_category_id"
                                  referencedColumnNames="id"
                                  referencedTableName="category"/>
-        
-        <addForeignKeyConstraint baseColumnNames="order_id"
-                                 baseTableName="book"
-                                 constraintName="fk_book_order_id"
-                                 referencedColumnNames="id"
-                                 referencedTableName="jhi_order"/>
 
     </changeSet>
 </databaseChangeLog>

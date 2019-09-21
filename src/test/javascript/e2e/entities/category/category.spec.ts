@@ -39,8 +39,9 @@ describe('Category e2e test', () => {
     const nbButtonsBeforeCreate = await categoryComponentsPage.countDeleteButtons();
 
     await categoryComponentsPage.clickOnCreateButton();
-    await promise.all([categoryUpdatePage.setNameInput('name')]);
+    await promise.all([categoryUpdatePage.setNameInput('name'), categoryUpdatePage.setDescriptionInput('description')]);
     expect(await categoryUpdatePage.getNameInput()).to.eq('name', 'Expected Name value to be equals to name');
+    expect(await categoryUpdatePage.getDescriptionInput()).to.eq('description', 'Expected Description value to be equals to description');
     await categoryUpdatePage.save();
     expect(await categoryUpdatePage.getSaveButton().isPresent(), 'Expected save button disappear').to.be.false;
 

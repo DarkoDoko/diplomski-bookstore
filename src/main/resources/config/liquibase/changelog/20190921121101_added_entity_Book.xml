@@ -23,7 +23,7 @@
                 <constraints nullable="false" />
             </column>
 
-            <column name="price" type="double">
+            <column name="price" type="decimal(21,2)">
                 <constraints nullable="false" />
             </column>
 
@@ -41,7 +41,7 @@
             <column name="publisher_id" type="bigint">
                 <constraints unique="true" nullable="true" uniqueConstraintName="ux_book_publisher_id" />
             </column>
-            <column name="order_id" type="bigint">
+            <column name="category_id" type="bigint">
                 <constraints nullable="true" />
             </column>
 
@@ -62,17 +62,6 @@
         </createTable>
 
         <addPrimaryKey columnNames="book_id, author_id" tableName="book_author"/>
-        
-        <createTable tableName="book_category">
-            <column name="category_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-            <column name="book_id" type="bigint">
-                <constraints nullable="false"/>
-            </column>
-        </createTable>
-
-        <addPrimaryKey columnNames="book_id, category_id" tableName="book_category"/>
         
     </changeSet>
     <!-- jhipster-needle-liquibase-add-changeset - JHipster will add changesets here, do not remove-->

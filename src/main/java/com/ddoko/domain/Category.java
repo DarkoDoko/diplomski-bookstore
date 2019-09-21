@@ -1,5 +1,4 @@
 package com.ddoko.domain;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -29,9 +28,11 @@ public class Category implements Serializable {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @ManyToMany(mappedBy = "categories")
+    @Column(name = "description")
+    private String description;
+
+    @OneToMany(mappedBy = "category")
     @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-    @JsonIgnore
     private Set<Book> books = new HashSet<>();
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
@@ -56,6 +57,19 @@ public class Category implements Serializable {
         this.name = name;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
+    public Category description(String description) {
+        this.description = description;
+        return this;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public Set<Book> getBooks() {
         return books;
     }
@@ -67,13 +81,13 @@ public class Category implements Serializable {
 
     public Category addBook(Book book) {
         this.books.add(book);
-        book.getCategories().add(this);
+        book.setCategory(this);
         return this;
     }
 
     public Category removeBook(Book book) {
         this.books.remove(book);
-        book.getCategories().remove(this);
+        book.setCategory(null);
         return this;
     }
 
@@ -103,6 +117,7 @@ public class Category implements Serializable {
         return "Category{" +
             "id=" + getId() +
             ", name='" + getName() + "'" +
+            ", description='" + getDescription() + "'" +
             "}";
     }
 }

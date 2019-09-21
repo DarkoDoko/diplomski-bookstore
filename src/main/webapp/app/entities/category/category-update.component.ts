@@ -3,12 +3,8 @@ import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { JhiAlertService } from 'ng-jhipster';
 import { ICategory, Category } from 'app/shared/model/category.model';
 import { CategoryService } from './category.service';
-import { IBook } from 'app/shared/model/book.model';
-import { BookService } from 'app/entities/book';
 
 @Component({
   selector: 'jhi-category-update',
@@ -17,39 +13,26 @@ import { BookService } from 'app/entities/book';
 export class CategoryUpdateComponent implements OnInit {
   isSaving: boolean;
 
-  books: IBook[];
-
   editForm = this.fb.group({
     id: [],
-    name: [null, [Validators.required]]
+    name: [null, [Validators.required]],
+    description: []
   });
 
-  constructor(
-    protected jhiAlertService: JhiAlertService,
-    protected categoryService: CategoryService,
-    protected bookService: BookService,
-    protected activatedRoute: ActivatedRoute,
-    private fb: FormBuilder
-  ) {}
+  constructor(protected categoryService: CategoryService, protected activatedRoute: ActivatedRoute, private fb: FormBuilder) {}
 
   ngOnInit() {
     this.isSaving = false;
     this.activatedRoute.data.subscribe(({ category }) => {
       this.updateForm(category);
     });
-    this.bookService
-      .query()
-      .pipe(
-        filter((mayBeOk: HttpResponse<IBook[]>) => mayBeOk.ok),
-        map((response: HttpResponse<IBook[]>) => response.body)
-      )
-      .subscribe((res: IBook[]) => (this.books = res), (res: HttpErrorResponse) => this.onError(res.message));
   }
 
   updateForm(category: ICategory) {
     this.editForm.patchValue({
       id: category.id,
-      name: category.name
+      name: category.name,
+      description: category.description
     });
   }
 
@@ -71,7 +54,8 @@ export class CategoryUpdateComponent implements OnInit {
     return {
       ...new Category(),
       id: this.editForm.get(['id']).value,
-      name: this.editForm.get(['name']).value
+      name: this.editForm.get(['name']).value,
+      description: this.editForm.get(['description']).value
     };
   }
 
@@ -86,23 +70,5 @@ export class CategoryUpdateComponent implements OnInit {
 
   protected onSaveError() {
     this.isSaving = false;
-  }
-  protected onError(errorMessage: string) {
-    this.jhiAlertService.error(errorMessage, null, null);
-  }
-
-  trackBookById(index: number, item: IBook) {
-    return item.id;
-  }
-
-  getSelected(selectedVals: Array<any>, option: any) {
-    if (selectedVals) {
-      for (let i = 0; i < selectedVals.length; i++) {
-        if (option.id === selectedVals[i].id) {
-          return selectedVals[i];
-        }
-      }
-    }
-    return option;
   }
 }

@@ -7,6 +7,7 @@ import javax.persistence.*;
 import javax.validation.constraints.*;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,8 +35,9 @@ public class Book implements Serializable {
     private String title;
 
     @NotNull
-    @Column(name = "price", nullable = false)
-    private Double price;
+    @DecimalMin(value = "0")
+    @Column(name = "price", precision = 21, scale = 2, nullable = false)
+    private BigDecimal price;
 
     @Column(name = "number_of_pages")
     private Integer numberOfPages;
@@ -59,16 +61,9 @@ public class Book implements Serializable {
                inverseJoinColumns = @JoinColumn(name = "author_id", referencedColumnName = "id"))
     private Set<Author> authors = new HashSet<>();
 
-    @ManyToMany
-    @Cache(usage = CacheConcurrencyStrategy.NONSTRICT_READ_WRITE)
-    @JoinTable(name = "book_category",
-               joinColumns = @JoinColumn(name = "book_id", referencedColumnName = "id"),
-               inverseJoinColumns = @JoinColumn(name = "category_id", referencedColumnName = "id"))
-    private Set<Category> categories = new HashSet<>();
-
     @ManyToOne
     @JsonIgnoreProperties("books")
-    private Order order;
+    private Category category;
 
     // jhipster-needle-entity-add-field - JHipster will add fields here, do not remove
     public Long getId() {
@@ -105,16 +100,16 @@ public class Book implements Serializable {
         this.title = title;
     }
 
-    public Double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public Book price(Double price) {
+    public Book price(BigDecimal price) {
         this.price = price;
         return this;
     }
 
-    public void setPrice(Double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 
@@ -195,42 +190,17 @@ public class Book implements Serializable {
         this.authors = authors;
     }
 
-    public Set<Category> getCategories() {
-        return categories;
+    public Category getCategory() {
+        return category;
     }
 
-    public Book categories(Set<Category> categories) {
-        this.categories = categories;
+    public Book category(Category category) {
+        this.category = category;
         return this;
     }
 
-    public Book addCategory(Category category) {
-        this.categories.add(category);
-        category.getBooks().add(this);
-        return this;
-    }
-
-    public Book removeCategory(Category category) {
-        this.categories.remove(category);
-        category.getBooks().remove(this);
-        return this;
-    }
-
-    public void setCategories(Set<Category> categories) {
-        this.categories = categories;
-    }
-
-    public Order getOrder() {
-        return order;
-    }
-
-    public Book order(Order order) {
-        this.order = order;
-        return this;
-    }
-
-    public void setOrder(Order order) {
-        this.order = order;
+    public void setCategory(Category category) {
+        this.category = category;
     }
     // jhipster-needle-entity-add-getters-setters - JHipster will add getters and setters here, do not remove
 

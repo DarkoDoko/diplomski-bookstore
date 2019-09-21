@@ -1,14 +1,22 @@
 package com.ddoko.web.rest;
 
 import com.ddoko.domain.Book;
-import com.ddoko.repository.BookRepository;
+import com.ddoko.service.BookService;
 import com.ddoko.web.rest.errors.BadRequestAlertException;
+import com.ddoko.service.dto.BookCriteria;
+import com.ddoko.service.BookQueryService;
 
 import io.github.jhipster.web.util.HeaderUtil;
+import io.github.jhipster.web.util.PaginationUtil;
 import io.github.jhipster.web.util.ResponseUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,10 +41,13 @@ public class BookResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final BookRepository bookRepository;
+    private final BookService bookService;
 
-    public BookResource(BookRepository bookRepository) {
-        this.bookRepository = bookRepository;
+    private final BookQueryService bookQueryService;
+
+    public BookResource(BookService bookService, BookQueryService bookQueryService) {
+        this.bookService = bookService;
+        this.bookQueryService = bookQueryService;
     }
 
     /**
@@ -52,7 +63,7 @@ public class BookResource {
         if (book.getId() != null) {
             throw new BadRequestAlertException("A new book cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Book result = bookRepository.save(book);
+        Book result = bookService.save(book);
         return ResponseEntity.created(new URI("/api/books/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -73,7 +84,7 @@ public class BookResource {
         if (book.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        Book result = bookRepository.save(book);
+        Book result = bookService.save(book);
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, book.getId().toString()))
             .body(result);
@@ -82,13 +93,30 @@ public class BookResource {
     /**
      * {@code GET  /books} : get all the books.
      *
-     * @param eagerload flag to eager load entities from relationships (This is applicable for many-to-many).
+
+     * @param pageable the pagination information.
+
+     * @param criteria the criteria which the requested entities should match.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of books in body.
      */
     @GetMapping("/books")
-    public List<Book> getAllBooks(@RequestParam(required = false, defaultValue = "false") boolean eagerload) {
-        log.debug("REST request to get all Books");
-        return bookRepository.findAllWithEagerRelationships();
+    public ResponseEntity<List<Book>> getAllBooks(BookCriteria criteria, Pageable pageable) {
+        log.debug("REST request to get Books by criteria: {}", criteria);
+        Page<Book> page = bookQueryService.findByCriteria(criteria, pageable);
+        HttpHeaders headers = PaginationUtil.generatePaginationHttpHeaders(ServletUriComponentsBuilder.fromCurrentRequest(), page);
+        return ResponseEntity.ok().headers(headers).body(page.getContent());
+    }
+
+    /**
+    * {@code GET  /books/count} : count all the books.
+    *
+    * @param criteria the criteria which the requested entities should match.
+    * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
+    */
+    @GetMapping("/books/count")
+    public ResponseEntity<Long> countBooks(BookCriteria criteria) {
+        log.debug("REST request to count Books by criteria: {}", criteria);
+        return ResponseEntity.ok().body(bookQueryService.countByCriteria(criteria));
     }
 
     /**
@@ -100,7 +128,7 @@ public class BookResource {
     @GetMapping("/books/{id}")
     public ResponseEntity<Book> getBook(@PathVariable Long id) {
         log.debug("REST request to get Book : {}", id);
-        Optional<Book> book = bookRepository.findOneWithEagerRelationships(id);
+        Optional<Book> book = bookService.findOne(id);
         return ResponseUtil.wrapOrNotFound(book);
     }
 
@@ -113,7 +141,7 @@ public class BookResource {
     @DeleteMapping("/books/{id}")
     public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
         log.debug("REST request to delete Book : {}", id);
-        bookRepository.deleteById(id);
+        bookService.delete(id);
         return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString())).build();
     }
 }

@@ -3,7 +3,10 @@ package com.ddoko.web.rest;
 import com.ddoko.BookstoreApp;
 import com.ddoko.domain.Publisher;
 import com.ddoko.repository.PublisherRepository;
+import com.ddoko.service.PublisherService;
 import com.ddoko.web.rest.errors.ExceptionTranslator;
+import com.ddoko.service.dto.PublisherCriteria;
+import com.ddoko.service.PublisherQueryService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +43,12 @@ public class PublisherResourceIT {
     private PublisherRepository publisherRepository;
 
     @Autowired
+    private PublisherService publisherService;
+
+    @Autowired
+    private PublisherQueryService publisherQueryService;
+
+    @Autowired
     private MappingJackson2HttpMessageConverter jacksonMessageConverter;
 
     @Autowired
@@ -61,7 +70,7 @@ public class PublisherResourceIT {
     @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        final PublisherResource publisherResource = new PublisherResource(publisherRepository);
+        final PublisherResource publisherResource = new PublisherResource(publisherService, publisherQueryService);
         this.restPublisherMockMvc = MockMvcBuilders.standaloneSetup(publisherResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
@@ -184,6 +193,79 @@ public class PublisherResourceIT {
 
     @Test
     @Transactional
+    public void getAllPublishersByNameIsEqualToSomething() throws Exception {
+        // Initialize the database
+        publisherRepository.saveAndFlush(publisher);
+
+        // Get all the publisherList where name equals to DEFAULT_NAME
+        defaultPublisherShouldBeFound("name.equals=" + DEFAULT_NAME);
+
+        // Get all the publisherList where name equals to UPDATED_NAME
+        defaultPublisherShouldNotBeFound("name.equals=" + UPDATED_NAME);
+    }
+
+    @Test
+    @Transactional
+    public void getAllPublishersByNameIsInShouldWork() throws Exception {
+        // Initialize the database
+        publisherRepository.saveAndFlush(publisher);
+
+        // Get all the publisherList where name in DEFAULT_NAME or UPDATED_NAME
+        defaultPublisherShouldBeFound("name.in=" + DEFAULT_NAME + "," + UPDATED_NAME);
+
+        // Get all the publisherList where name equals to UPDATED_NAME
+        defaultPublisherShouldNotBeFound("name.in=" + UPDATED_NAME);
+    }
+
+    @Test
+    @Transactional
+    public void getAllPublishersByNameIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        publisherRepository.saveAndFlush(publisher);
+
+        // Get all the publisherList where name is not null
+        defaultPublisherShouldBeFound("name.specified=true");
+
+        // Get all the publisherList where name is null
+        defaultPublisherShouldNotBeFound("name.specified=false");
+    }
+    /**
+     * Executes the search, and checks that the default entity is returned.
+     */
+    private void defaultPublisherShouldBeFound(String filter) throws Exception {
+        restPublisherMockMvc.perform(get("/api/publishers?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$.[*].id").value(hasItem(publisher.getId().intValue())))
+            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)));
+
+        // Check, that the count call also returns 1
+        restPublisherMockMvc.perform(get("/api/publishers/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("1"));
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is not returned.
+     */
+    private void defaultPublisherShouldNotBeFound(String filter) throws Exception {
+        restPublisherMockMvc.perform(get("/api/publishers?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$").isEmpty());
+
+        // Check, that the count call also returns 0
+        restPublisherMockMvc.perform(get("/api/publishers/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("0"));
+    }
+
+
+    @Test
+    @Transactional
     public void getNonExistingPublisher() throws Exception {
         // Get the publisher
         restPublisherMockMvc.perform(get("/api/publishers/{id}", Long.MAX_VALUE))
@@ -194,7 +276,7 @@ public class PublisherResourceIT {
     @Transactional
     public void updatePublisher() throws Exception {
         // Initialize the database
-        publisherRepository.saveAndFlush(publisher);
+        publisherService.save(publisher);
 
         int databaseSizeBeforeUpdate = publisherRepository.findAll().size();
 
@@ -239,7 +321,7 @@ public class PublisherResourceIT {
     @Transactional
     public void deletePublisher() throws Exception {
         // Initialize the database
-        publisherRepository.saveAndFlush(publisher);
+        publisherService.save(publisher);
 
         int databaseSizeBeforeDelete = publisherRepository.findAll().size();
 

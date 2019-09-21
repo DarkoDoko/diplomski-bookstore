@@ -13,8 +13,6 @@ import { IAuthor } from 'app/shared/model/author.model';
 import { AuthorService } from 'app/entities/author';
 import { ICategory } from 'app/shared/model/category.model';
 import { CategoryService } from 'app/entities/category';
-import { IOrder } from 'app/shared/model/order.model';
-import { OrderService } from 'app/entities/order';
 
 @Component({
   selector: 'jhi-book-update',
@@ -29,20 +27,17 @@ export class BookUpdateComponent implements OnInit {
 
   categories: ICategory[];
 
-  orders: IOrder[];
-
   editForm = this.fb.group({
     id: [],
     iSBN: [null, [Validators.required]],
     title: [null, [Validators.required]],
-    price: [null, [Validators.required]],
+    price: [null, [Validators.required, Validators.min(0)]],
     numberOfPages: [],
     publishYear: [null, [Validators.required, Validators.minLength(4), Validators.maxLength(4)]],
     coverUrl: [],
     publisher: [],
     authors: [],
-    categories: [],
-    order: []
+    category: []
   });
 
   constructor(
@@ -51,7 +46,6 @@ export class BookUpdateComponent implements OnInit {
     protected publisherService: PublisherService,
     protected authorService: AuthorService,
     protected categoryService: CategoryService,
-    protected orderService: OrderService,
     protected activatedRoute: ActivatedRoute,
     private fb: FormBuilder
   ) {}
@@ -62,7 +56,7 @@ export class BookUpdateComponent implements OnInit {
       this.updateForm(book);
     });
     this.publisherService
-      .query({ filter: 'book-is-null' })
+      .query({ 'bookId.specified': 'false' })
       .pipe(
         filter((mayBeOk: HttpResponse<IPublisher[]>) => mayBeOk.ok),
         map((response: HttpResponse<IPublisher[]>) => response.body)
@@ -100,13 +94,6 @@ export class BookUpdateComponent implements OnInit {
         map((response: HttpResponse<ICategory[]>) => response.body)
       )
       .subscribe((res: ICategory[]) => (this.categories = res), (res: HttpErrorResponse) => this.onError(res.message));
-    this.orderService
-      .query()
-      .pipe(
-        filter((mayBeOk: HttpResponse<IOrder[]>) => mayBeOk.ok),
-        map((response: HttpResponse<IOrder[]>) => response.body)
-      )
-      .subscribe((res: IOrder[]) => (this.orders = res), (res: HttpErrorResponse) => this.onError(res.message));
   }
 
   updateForm(book: IBook) {
@@ -120,8 +107,7 @@ export class BookUpdateComponent implements OnInit {
       coverUrl: book.coverUrl,
       publisher: book.publisher,
       authors: book.authors,
-      categories: book.categories,
-      order: book.order
+      category: book.category
     });
   }
 
@@ -151,8 +137,7 @@ export class BookUpdateComponent implements OnInit {
       coverUrl: this.editForm.get(['coverUrl']).value,
       publisher: this.editForm.get(['publisher']).value,
       authors: this.editForm.get(['authors']).value,
-      categories: this.editForm.get(['categories']).value,
-      order: this.editForm.get(['order']).value
+      category: this.editForm.get(['category']).value
     };
   }
 
@@ -181,10 +166,6 @@ export class BookUpdateComponent implements OnInit {
   }
 
   trackCategoryById(index: number, item: ICategory) {
-    return item.id;
-  }
-
-  trackOrderById(index: number, item: IOrder) {
     return item.id;
   }
 

@@ -1,5 +1,5 @@
 /* tslint:disable no-unused-expression */
-import { browser, ExpectedConditions as ec, promise } from 'protractor';
+import { browser, ExpectedConditions as ec, protractor, promise } from 'protractor';
 import { NavBarPage, SignInPage } from '../../page-objects/jhi-page-objects';
 
 import { OrderComponentsPage, OrderDeleteDialog, OrderUpdatePage } from './order.page-object';
@@ -11,7 +11,7 @@ describe('Order e2e test', () => {
   let signInPage: SignInPage;
   let orderUpdatePage: OrderUpdatePage;
   let orderComponentsPage: OrderComponentsPage;
-  let orderDeleteDialog: OrderDeleteDialog;
+  /*let orderDeleteDialog: OrderDeleteDialog;*/
 
   before(async () => {
     await browser.get('/');
@@ -35,27 +35,34 @@ describe('Order e2e test', () => {
     await orderUpdatePage.cancel();
   });
 
-  it('should create and save Orders', async () => {
-    const nbButtonsBeforeCreate = await orderComponentsPage.countDeleteButtons();
+  /* it('should create and save Orders', async () => {
+        const nbButtonsBeforeCreate = await orderComponentsPage.countDeleteButtons();
 
-    await orderComponentsPage.clickOnCreateButton();
-    await promise.all([orderUpdatePage.customerSelectLastOption()]);
-    await orderUpdatePage.save();
-    expect(await orderUpdatePage.getSaveButton().isPresent(), 'Expected save button disappear').to.be.false;
+        await orderComponentsPage.clickOnCreateButton();
+        await promise.all([
+            orderUpdatePage.setPlacedAtInput('01/01/2001' + protractor.Key.TAB + '02:30AM'),
+            orderUpdatePage.setCodeInput('code'),
+            orderUpdatePage.customerSelectLastOption(),
+        ]);
+        expect(await orderUpdatePage.getPlacedAtInput()).to.contain('2001-01-01T02:30', 'Expected placedAt value to be equals to 2000-12-31');
+        expect(await orderUpdatePage.getCodeInput()).to.eq('code', 'Expected Code value to be equals to code');
+        await orderUpdatePage.save();
+        expect(await orderUpdatePage.getSaveButton().isPresent(), 'Expected save button disappear').to.be.false;
 
-    expect(await orderComponentsPage.countDeleteButtons()).to.eq(nbButtonsBeforeCreate + 1, 'Expected one more entry in the table');
-  });
+        expect(await orderComponentsPage.countDeleteButtons()).to.eq(nbButtonsBeforeCreate + 1, 'Expected one more entry in the table');
+    });*/
 
-  it('should delete last Order', async () => {
-    const nbButtonsBeforeDelete = await orderComponentsPage.countDeleteButtons();
-    await orderComponentsPage.clickOnLastDeleteButton();
+  /* it('should delete last Order', async () => {
+        const nbButtonsBeforeDelete = await orderComponentsPage.countDeleteButtons();
+        await orderComponentsPage.clickOnLastDeleteButton();
 
-    orderDeleteDialog = new OrderDeleteDialog();
-    expect(await orderDeleteDialog.getDialogTitle()).to.eq('Are you sure you want to delete this Order?');
-    await orderDeleteDialog.clickOnConfirmButton();
+        orderDeleteDialog = new OrderDeleteDialog();
+        expect(await orderDeleteDialog.getDialogTitle())
+            .to.eq('Are you sure you want to delete this Order?');
+        await orderDeleteDialog.clickOnConfirmButton();
 
-    expect(await orderComponentsPage.countDeleteButtons()).to.eq(nbButtonsBeforeDelete - 1);
-  });
+        expect(await orderComponentsPage.countDeleteButtons()).to.eq(nbButtonsBeforeDelete - 1);
+    });*/
 
   after(async () => {
     await navBarPage.autoSignOut();

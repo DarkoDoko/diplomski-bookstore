@@ -1,7 +1,7 @@
 package com.ddoko.web.rest;
 
 import com.ddoko.domain.Order;
-import com.ddoko.repository.OrderRepository;
+import com.ddoko.service.OrderService;
 import com.ddoko.web.rest.errors.BadRequestAlertException;
 
 import io.github.jhipster.web.util.HeaderUtil;
@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
 
@@ -32,10 +33,10 @@ public class OrderResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final OrderRepository orderRepository;
+    private final OrderService orderService;
 
-    public OrderResource(OrderRepository orderRepository) {
-        this.orderRepository = orderRepository;
+    public OrderResource(OrderService orderService) {
+        this.orderService = orderService;
     }
 
     /**
@@ -46,12 +47,12 @@ public class OrderResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PostMapping("/orders")
-    public ResponseEntity<Order> createOrder(@RequestBody Order order) throws URISyntaxException {
+    public ResponseEntity<Order> createOrder(@Valid @RequestBody Order order) throws URISyntaxException {
         log.debug("REST request to save Order : {}", order);
         if (order.getId() != null) {
             throw new BadRequestAlertException("A new order cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Order result = orderRepository.save(order);
+        Order result = orderService.save(order);
         return ResponseEntity.created(new URI("/api/orders/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -67,12 +68,12 @@ public class OrderResource {
      * @throws URISyntaxException if the Location URI syntax is incorrect.
      */
     @PutMapping("/orders")
-    public ResponseEntity<Order> updateOrder(@RequestBody Order order) throws URISyntaxException {
+    public ResponseEntity<Order> updateOrder(@Valid @RequestBody Order order) throws URISyntaxException {
         log.debug("REST request to update Order : {}", order);
         if (order.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        Order result = orderRepository.save(order);
+        Order result = orderService.save(order);
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, order.getId().toString()))
             .body(result);
@@ -87,7 +88,7 @@ public class OrderResource {
     @GetMapping("/orders")
     public List<Order> getAllOrders() {
         log.debug("REST request to get all Orders");
-        return orderRepository.findAll();
+        return orderService.findAll();
     }
 
     /**
@@ -99,7 +100,7 @@ public class OrderResource {
     @GetMapping("/orders/{id}")
     public ResponseEntity<Order> getOrder(@PathVariable Long id) {
         log.debug("REST request to get Order : {}", id);
-        Optional<Order> order = orderRepository.findById(id);
+        Optional<Order> order = orderService.findOne(id);
         return ResponseUtil.wrapOrNotFound(order);
     }
 
@@ -112,7 +113,7 @@ public class OrderResource {
     @DeleteMapping("/orders/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Long id) {
         log.debug("REST request to delete Order : {}", id);
-        orderRepository.deleteById(id);
+        orderService.delete(id);
         return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString())).build();
     }
 }

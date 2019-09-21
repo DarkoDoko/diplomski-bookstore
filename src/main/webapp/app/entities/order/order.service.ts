@@ -1,6 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import * as moment from 'moment';
+import { DATE_FORMAT } from 'app/shared/constants/input.constants';
+import { map } from 'rxjs/operators';
 
 import { SERVER_API_URL } from 'app/app.constants';
 import { createRequestOption } from 'app/shared';
@@ -16,23 +19,56 @@ export class OrderService {
   constructor(protected http: HttpClient) {}
 
   create(order: IOrder): Observable<EntityResponseType> {
-    return this.http.post<IOrder>(this.resourceUrl, order, { observe: 'response' });
+    const copy = this.convertDateFromClient(order);
+    return this.http
+      .post<IOrder>(this.resourceUrl, copy, { observe: 'response' })
+      .pipe(map((res: EntityResponseType) => this.convertDateFromServer(res)));
   }
 
   update(order: IOrder): Observable<EntityResponseType> {
-    return this.http.put<IOrder>(this.resourceUrl, order, { observe: 'response' });
+    const copy = this.convertDateFromClient(order);
+    return this.http
+      .put<IOrder>(this.resourceUrl, copy, { observe: 'response' })
+      .pipe(map((res: EntityResponseType) => this.convertDateFromServer(res)));
   }
 
   find(id: number): Observable<EntityResponseType> {
-    return this.http.get<IOrder>(`${this.resourceUrl}/${id}`, { observe: 'response' });
+    return this.http
+      .get<IOrder>(`${this.resourceUrl}/${id}`, { observe: 'response' })
+      .pipe(map((res: EntityResponseType) => this.convertDateFromServer(res)));
   }
 
   query(req?: any): Observable<EntityArrayResponseType> {
     const options = createRequestOption(req);
-    return this.http.get<IOrder[]>(this.resourceUrl, { params: options, observe: 'response' });
+    return this.http
+      .get<IOrder[]>(this.resourceUrl, { params: options, observe: 'response' })
+      .pipe(map((res: EntityArrayResponseType) => this.convertDateArrayFromServer(res)));
   }
 
   delete(id: number): Observable<HttpResponse<any>> {
     return this.http.delete<any>(`${this.resourceUrl}/${id}`, { observe: 'response' });
+  }
+
+  protected convertDateFromClient(order: IOrder): IOrder {
+    const copy: IOrder = Object.assign({}, order, {
+      placedAt: order.placedAt != null && order.placedAt.isValid() ? order.placedAt.toJSON() : null
+    });
+    return copy;
+  }
+
+  protected convertDateFromServer(res: EntityResponseType): EntityResponseType {
+    if (res.body) {
+      res.body.placedAt = res.body.placedAt != null ? moment(res.body.placedAt) : null;
+    }
+    return res;
+  }
+
+  protected convertDateArrayFromServer(res: EntityArrayResponseType): EntityArrayResponseType {
+    if (res.body) {
+      res.body.forEach((order: IOrder) => {
+        order.placedAt = order.placedAt != null ? moment(order.placedAt) : null;
+      });
+    }
+    return res;
   }
 }

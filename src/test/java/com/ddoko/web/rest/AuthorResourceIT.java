@@ -2,8 +2,12 @@ package com.ddoko.web.rest;
 
 import com.ddoko.BookstoreApp;
 import com.ddoko.domain.Author;
+import com.ddoko.domain.Book;
 import com.ddoko.repository.AuthorRepository;
+import com.ddoko.service.AuthorService;
 import com.ddoko.web.rest.errors.ExceptionTranslator;
+import com.ddoko.service.dto.AuthorCriteria;
+import com.ddoko.service.AuthorQueryService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,6 +47,12 @@ public class AuthorResourceIT {
     private AuthorRepository authorRepository;
 
     @Autowired
+    private AuthorService authorService;
+
+    @Autowired
+    private AuthorQueryService authorQueryService;
+
+    @Autowired
     private MappingJackson2HttpMessageConverter jacksonMessageConverter;
 
     @Autowired
@@ -64,7 +74,7 @@ public class AuthorResourceIT {
     @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        final AuthorResource authorResource = new AuthorResource(authorRepository);
+        final AuthorResource authorResource = new AuthorResource(authorService, authorQueryService);
         this.restAuthorMockMvc = MockMvcBuilders.standaloneSetup(authorResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
@@ -210,6 +220,139 @@ public class AuthorResourceIT {
 
     @Test
     @Transactional
+    public void getAllAuthorsByFirstNameIsEqualToSomething() throws Exception {
+        // Initialize the database
+        authorRepository.saveAndFlush(author);
+
+        // Get all the authorList where firstName equals to DEFAULT_FIRST_NAME
+        defaultAuthorShouldBeFound("firstName.equals=" + DEFAULT_FIRST_NAME);
+
+        // Get all the authorList where firstName equals to UPDATED_FIRST_NAME
+        defaultAuthorShouldNotBeFound("firstName.equals=" + UPDATED_FIRST_NAME);
+    }
+
+    @Test
+    @Transactional
+    public void getAllAuthorsByFirstNameIsInShouldWork() throws Exception {
+        // Initialize the database
+        authorRepository.saveAndFlush(author);
+
+        // Get all the authorList where firstName in DEFAULT_FIRST_NAME or UPDATED_FIRST_NAME
+        defaultAuthorShouldBeFound("firstName.in=" + DEFAULT_FIRST_NAME + "," + UPDATED_FIRST_NAME);
+
+        // Get all the authorList where firstName equals to UPDATED_FIRST_NAME
+        defaultAuthorShouldNotBeFound("firstName.in=" + UPDATED_FIRST_NAME);
+    }
+
+    @Test
+    @Transactional
+    public void getAllAuthorsByFirstNameIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        authorRepository.saveAndFlush(author);
+
+        // Get all the authorList where firstName is not null
+        defaultAuthorShouldBeFound("firstName.specified=true");
+
+        // Get all the authorList where firstName is null
+        defaultAuthorShouldNotBeFound("firstName.specified=false");
+    }
+
+    @Test
+    @Transactional
+    public void getAllAuthorsByLastNameIsEqualToSomething() throws Exception {
+        // Initialize the database
+        authorRepository.saveAndFlush(author);
+
+        // Get all the authorList where lastName equals to DEFAULT_LAST_NAME
+        defaultAuthorShouldBeFound("lastName.equals=" + DEFAULT_LAST_NAME);
+
+        // Get all the authorList where lastName equals to UPDATED_LAST_NAME
+        defaultAuthorShouldNotBeFound("lastName.equals=" + UPDATED_LAST_NAME);
+    }
+
+    @Test
+    @Transactional
+    public void getAllAuthorsByLastNameIsInShouldWork() throws Exception {
+        // Initialize the database
+        authorRepository.saveAndFlush(author);
+
+        // Get all the authorList where lastName in DEFAULT_LAST_NAME or UPDATED_LAST_NAME
+        defaultAuthorShouldBeFound("lastName.in=" + DEFAULT_LAST_NAME + "," + UPDATED_LAST_NAME);
+
+        // Get all the authorList where lastName equals to UPDATED_LAST_NAME
+        defaultAuthorShouldNotBeFound("lastName.in=" + UPDATED_LAST_NAME);
+    }
+
+    @Test
+    @Transactional
+    public void getAllAuthorsByLastNameIsNullOrNotNull() throws Exception {
+        // Initialize the database
+        authorRepository.saveAndFlush(author);
+
+        // Get all the authorList where lastName is not null
+        defaultAuthorShouldBeFound("lastName.specified=true");
+
+        // Get all the authorList where lastName is null
+        defaultAuthorShouldNotBeFound("lastName.specified=false");
+    }
+
+    @Test
+    @Transactional
+    public void getAllAuthorsByBookIsEqualToSomething() throws Exception {
+        // Initialize the database
+        authorRepository.saveAndFlush(author);
+        Book book = BookResourceIT.createEntity(em);
+        em.persist(book);
+        em.flush();
+        author.addBook(book);
+        authorRepository.saveAndFlush(author);
+        Long bookId = book.getId();
+
+        // Get all the authorList where book equals to bookId
+        defaultAuthorShouldBeFound("bookId.equals=" + bookId);
+
+        // Get all the authorList where book equals to bookId + 1
+        defaultAuthorShouldNotBeFound("bookId.equals=" + (bookId + 1));
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is returned.
+     */
+    private void defaultAuthorShouldBeFound(String filter) throws Exception {
+        restAuthorMockMvc.perform(get("/api/authors?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$.[*].id").value(hasItem(author.getId().intValue())))
+            .andExpect(jsonPath("$.[*].firstName").value(hasItem(DEFAULT_FIRST_NAME)))
+            .andExpect(jsonPath("$.[*].lastName").value(hasItem(DEFAULT_LAST_NAME)));
+
+        // Check, that the count call also returns 1
+        restAuthorMockMvc.perform(get("/api/authors/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("1"));
+    }
+
+    /**
+     * Executes the search, and checks that the default entity is not returned.
+     */
+    private void defaultAuthorShouldNotBeFound(String filter) throws Exception {
+        restAuthorMockMvc.perform(get("/api/authors?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(jsonPath("$").isArray())
+            .andExpect(jsonPath("$").isEmpty());
+
+        // Check, that the count call also returns 0
+        restAuthorMockMvc.perform(get("/api/authors/count?sort=id,desc&" + filter))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().string("0"));
+    }
+
+
+    @Test
+    @Transactional
     public void getNonExistingAuthor() throws Exception {
         // Get the author
         restAuthorMockMvc.perform(get("/api/authors/{id}", Long.MAX_VALUE))
@@ -220,7 +363,7 @@ public class AuthorResourceIT {
     @Transactional
     public void updateAuthor() throws Exception {
         // Initialize the database
-        authorRepository.saveAndFlush(author);
+        authorService.save(author);
 
         int databaseSizeBeforeUpdate = authorRepository.findAll().size();
 
@@ -267,7 +410,7 @@ public class AuthorResourceIT {
     @Transactional
     public void deleteAuthor() throws Exception {
         // Initialize the database
-        authorRepository.saveAndFlush(author);
+        authorService.save(author);
 
         int databaseSizeBeforeDelete = authorRepository.findAll().size();
 

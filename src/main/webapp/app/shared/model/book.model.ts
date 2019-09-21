@@ -1,7 +1,6 @@
 import { IPublisher } from 'app/shared/model/publisher.model';
 import { IAuthor } from 'app/shared/model/author.model';
 import { ICategory } from 'app/shared/model/category.model';
-import { IOrder } from 'app/shared/model/order.model';
 
 export interface IBook {
   id?: number;
@@ -13,8 +12,7 @@ export interface IBook {
   coverUrl?: string;
   publisher?: IPublisher;
   authors?: IAuthor[];
-  categories?: ICategory[];
-  order?: IOrder;
+  category?: ICategory;
 }
 
 export class Book implements IBook {
@@ -28,7 +26,6 @@ export class Book implements IBook {
     public coverUrl?: string,
     public publisher?: IPublisher,
     public authors?: IAuthor[],
-    public categories?: ICategory[],
-    public order?: IOrder
+    public category?: ICategory
   ) {}
 }

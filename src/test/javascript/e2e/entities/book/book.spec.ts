@@ -48,8 +48,7 @@ describe('Book e2e test', () => {
       bookUpdatePage.setCoverUrlInput('coverUrl'),
       bookUpdatePage.publisherSelectLastOption(),
       // bookUpdatePage.authorSelectLastOption(),
-      // bookUpdatePage.categorySelectLastOption(),
-      bookUpdatePage.orderSelectLastOption()
+      bookUpdatePage.categorySelectLastOption()
     ]);
     expect(await bookUpdatePage.getISBNInput()).to.eq('iSBN', 'Expected ISBN value to be equals to iSBN');
     expect(await bookUpdatePage.getTitleInput()).to.eq('title', 'Expected Title value to be equals to title');

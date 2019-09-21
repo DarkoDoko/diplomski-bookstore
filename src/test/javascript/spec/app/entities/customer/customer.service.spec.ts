@@ -23,7 +23,7 @@ describe('Service Tests', () => {
       service = injector.get(CustomerService);
       httpMock = injector.get(HttpTestingController);
 
-      elemDefault = new Customer(0);
+      elemDefault = new Customer(0, 'AAAAAAA', 'AAAAAAA', 'AAAAAAA', 'AAAAAAA');
     });
 
     describe('Service methods', () => {
@@ -57,7 +57,15 @@ describe('Service Tests', () => {
       });
 
       it('should update a Customer', async () => {
-        const returnedFromService = Object.assign({}, elemDefault);
+        const returnedFromService = Object.assign(
+          {
+            firstName: 'BBBBBB',
+            lastName: 'BBBBBB',
+            email: 'BBBBBB',
+            telephone: 'BBBBBB'
+          },
+          elemDefault
+        );
 
         const expected = Object.assign({}, returnedFromService);
         service
@@ -70,7 +78,15 @@ describe('Service Tests', () => {
       });
 
       it('should return a list of Customer', async () => {
-        const returnedFromService = Object.assign({}, elemDefault);
+        const returnedFromService = Object.assign(
+          {
+            firstName: 'BBBBBB',
+            lastName: 'BBBBBB',
+            email: 'BBBBBB',
+            telephone: 'BBBBBB'
+          },
+          elemDefault
+        );
         const expected = Object.assign({}, returnedFromService);
         service
           .query(expected)

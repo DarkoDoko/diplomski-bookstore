@@ -3,6 +3,7 @@ package com.ddoko.web.rest;
 import com.ddoko.BookstoreApp;
 import com.ddoko.domain.Category;
 import com.ddoko.repository.CategoryRepository;
+import com.ddoko.service.CategoryService;
 import com.ddoko.web.rest.errors.ExceptionTranslator;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -36,8 +37,14 @@ public class CategoryResourceIT {
     private static final String DEFAULT_NAME = "AAAAAAAAAA";
     private static final String UPDATED_NAME = "BBBBBBBBBB";
 
+    private static final String DEFAULT_DESCRIPTION = "AAAAAAAAAA";
+    private static final String UPDATED_DESCRIPTION = "BBBBBBBBBB";
+
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    private CategoryService categoryService;
 
     @Autowired
     private MappingJackson2HttpMessageConverter jacksonMessageConverter;
@@ -61,7 +68,7 @@ public class CategoryResourceIT {
     @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        final CategoryResource categoryResource = new CategoryResource(categoryRepository);
+        final CategoryResource categoryResource = new CategoryResource(categoryService);
         this.restCategoryMockMvc = MockMvcBuilders.standaloneSetup(categoryResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
@@ -78,7 +85,8 @@ public class CategoryResourceIT {
      */
     public static Category createEntity(EntityManager em) {
         Category category = new Category()
-            .name(DEFAULT_NAME);
+            .name(DEFAULT_NAME)
+            .description(DEFAULT_DESCRIPTION);
         return category;
     }
     /**
@@ -89,7 +97,8 @@ public class CategoryResourceIT {
      */
     public static Category createUpdatedEntity(EntityManager em) {
         Category category = new Category()
-            .name(UPDATED_NAME);
+            .name(UPDATED_NAME)
+            .description(UPDATED_DESCRIPTION);
         return category;
     }
 
@@ -114,6 +123,7 @@ public class CategoryResourceIT {
         assertThat(categoryList).hasSize(databaseSizeBeforeCreate + 1);
         Category testCategory = categoryList.get(categoryList.size() - 1);
         assertThat(testCategory.getName()).isEqualTo(DEFAULT_NAME);
+        assertThat(testCategory.getDescription()).isEqualTo(DEFAULT_DESCRIPTION);
     }
 
     @Test
@@ -165,7 +175,8 @@ public class CategoryResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(category.getId().intValue())))
-            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME.toString())));
+            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME.toString())))
+            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION.toString())));
     }
     
     @Test
@@ -179,7 +190,8 @@ public class CategoryResourceIT {
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
             .andExpect(jsonPath("$.id").value(category.getId().intValue()))
-            .andExpect(jsonPath("$.name").value(DEFAULT_NAME.toString()));
+            .andExpect(jsonPath("$.name").value(DEFAULT_NAME.toString()))
+            .andExpect(jsonPath("$.description").value(DEFAULT_DESCRIPTION.toString()));
     }
 
     @Test
@@ -194,7 +206,7 @@ public class CategoryResourceIT {
     @Transactional
     public void updateCategory() throws Exception {
         // Initialize the database
-        categoryRepository.saveAndFlush(category);
+        categoryService.save(category);
 
         int databaseSizeBeforeUpdate = categoryRepository.findAll().size();
 
@@ -203,7 +215,8 @@ public class CategoryResourceIT {
         // Disconnect from session so that the updates on updatedCategory are not directly saved in db
         em.detach(updatedCategory);
         updatedCategory
-            .name(UPDATED_NAME);
+            .name(UPDATED_NAME)
+            .description(UPDATED_DESCRIPTION);
 
         restCategoryMockMvc.perform(put("/api/categories")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
@@ -215,6 +228,7 @@ public class CategoryResourceIT {
         assertThat(categoryList).hasSize(databaseSizeBeforeUpdate);
         Category testCategory = categoryList.get(categoryList.size() - 1);
         assertThat(testCategory.getName()).isEqualTo(UPDATED_NAME);
+        assertThat(testCategory.getDescription()).isEqualTo(UPDATED_DESCRIPTION);
     }
 
     @Test
@@ -239,7 +253,7 @@ public class CategoryResourceIT {
     @Transactional
     public void deleteCategory() throws Exception {
         // Initialize the database
-        categoryRepository.saveAndFlush(category);
+        categoryService.save(category);
 
         int databaseSizeBeforeDelete = categoryRepository.findAll().size();
 

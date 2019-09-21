@@ -26,9 +26,65 @@ export class CustomerUpdatePage {
   pageTitle = element(by.id('jhi-customer-heading'));
   saveButton = element(by.id('save-entity'));
   cancelButton = element(by.id('cancel-save'));
+  firstNameInput = element(by.id('field_firstName'));
+  lastNameInput = element(by.id('field_lastName'));
+  emailInput = element(by.id('field_email'));
+  telephoneInput = element(by.id('field_telephone'));
+  userSelect = element(by.id('field_user'));
 
   async getPageTitle() {
     return this.pageTitle.getText();
+  }
+
+  async setFirstNameInput(firstName) {
+    await this.firstNameInput.sendKeys(firstName);
+  }
+
+  async getFirstNameInput() {
+    return await this.firstNameInput.getAttribute('value');
+  }
+
+  async setLastNameInput(lastName) {
+    await this.lastNameInput.sendKeys(lastName);
+  }
+
+  async getLastNameInput() {
+    return await this.lastNameInput.getAttribute('value');
+  }
+
+  async setEmailInput(email) {
+    await this.emailInput.sendKeys(email);
+  }
+
+  async getEmailInput() {
+    return await this.emailInput.getAttribute('value');
+  }
+
+  async setTelephoneInput(telephone) {
+    await this.telephoneInput.sendKeys(telephone);
+  }
+
+  async getTelephoneInput() {
+    return await this.telephoneInput.getAttribute('value');
+  }
+
+  async userSelectLastOption(timeout?: number) {
+    await this.userSelect
+      .all(by.tagName('option'))
+      .last()
+      .click();
+  }
+
+  async userSelectOption(option) {
+    await this.userSelect.sendKeys(option);
+  }
+
+  getUserSelect(): ElementFinder {
+    return this.userSelect;
+  }
+
+  async getUserSelectedOption() {
+    return await this.userSelect.element(by.css('option:checked')).getText();
   }
 
   async save(timeout?: number) {

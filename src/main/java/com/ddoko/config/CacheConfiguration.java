@@ -57,6 +57,8 @@ public class CacheConfiguration {
             createCache(cm, com.ddoko.domain.Category.class.getName() + ".books");
             createCache(cm, com.ddoko.domain.Order.class.getName());
             createCache(cm, com.ddoko.domain.Order.class.getName() + ".books");
+            createCache(cm, com.ddoko.domain.Order.class.getName() + ".orderItems");
+            createCache(cm, com.ddoko.domain.OrderItem.class.getName());
             // jhipster-needle-ehcache-add-entry
         };
     }

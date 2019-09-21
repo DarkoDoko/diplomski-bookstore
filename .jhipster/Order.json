@@ -1,26 +1,42 @@
 {
     "name": "Order",
-    "fields": [],
+    "fields": [
+        {
+            "fieldName": "placedAt",
+            "fieldType": "Instant",
+            "fieldValidateRules": [
+                "required"
+            ]
+        },
+        {
+            "fieldName": "code",
+            "fieldType": "String",
+            "fieldValidateRules": [
+                "required"
+            ]
+        }
+    ],
     "relationships": [
         {
             "relationshipType": "one-to-many",
-            "otherEntityName": "book",
+            "otherEntityName": "orderItem",
             "otherEntityRelationshipName": "order",
-            "relationshipName": "book"
+            "relationshipName": "orderItem"
         },
         {
             "relationshipType": "many-to-one",
             "otherEntityName": "customer",
             "otherEntityRelationshipName": "order",
+            "relationshipValidateRules": "required",
             "relationshipName": "customer",
-            "otherEntityField": "id"
+            "otherEntityField": "email"
         }
     ],
     "changelogDate": "20190921121105",
     "entityTableName": "order",
     "dto": "no",
     "pagination": "no",
-    "service": "no",
+    "service": "serviceImpl",
     "jpaMetamodelFiltering": false,
     "fluentMethods": true,
     "clientRootFolder": "",

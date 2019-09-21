@@ -16,22 +16,20 @@
     <div class="table-responsive" *ngIf="books?.length > 0">
         <table class="table table-striped">
             <thead>
-            <tr>
-            <th><span>ID</span></th>
-            <th><span>I SBN</span></th>
-            <th><span>Title</span></th>
-            <th><span>Price</span></th>
-            <th><span>Number Of Pages</span></th>
-            <th><span>Publish Year</span></th>
-            <th><span>Cover Url</span></th>
-            <th><span>Publisher</span></th>
-            <th><span>Author</span></th>
-            <th><span>Category</span></th>
-            <th><span>Order</span></th>
+            <tr jhiSort [(predicate)]="predicate" [(ascending)]="reverse" [callback]="reset.bind(this)">
+            <th jhiSortBy="id"><span>ID</span> <fa-icon [icon]="'sort'"></fa-icon></th>
+            <th jhiSortBy="iSBN"><span>I SBN</span> <fa-icon [icon]="'sort'"></fa-icon></th>
+            <th jhiSortBy="title"><span>Title</span> <fa-icon [icon]="'sort'"></fa-icon></th>
+            <th jhiSortBy="price"><span>Price</span> <fa-icon [icon]="'sort'"></fa-icon></th>
+            <th jhiSortBy="numberOfPages"><span>Number Of Pages</span> <fa-icon [icon]="'sort'"></fa-icon></th>
+            <th jhiSortBy="publishYear"><span>Publish Year</span> <fa-icon [icon]="'sort'"></fa-icon></th>
+            <th jhiSortBy="coverUrl"><span>Cover Url</span> <fa-icon [icon]="'sort'"></fa-icon></th>
+            <th jhiSortBy="publisher.name"><span>Publisher</span> <fa-icon [icon]="'sort'"></fa-icon></th>
+            <th jhiSortBy="category.name"><span>Category</span> <fa-icon [icon]="'sort'"></fa-icon></th>
             <th></th>
             </tr>
             </thead>
-            <tbody>
+            <tbody infinite-scroll (scrolled)="loadPage(page + 1)" [infiniteScrollDisabled]="page >= links['last']" [infiniteScrollDistance]="0">
             <tr *ngFor="let book of books ;trackBy: trackId">
                 <td><a [routerLink]="['/book', book.id, 'view' ]">{{book.id}}</a></td>
                 <td>{{book.iSBN}}</td>
@@ -46,18 +44,8 @@
                     </div>
                 </td>
                 <td>
-                    <span *ngFor="let author of book.authors; let last = last">
-                            <a class="form-control-static" [routerLink]="['/author', author?.id, 'view' ]">{{author.firstName}}</a>{{last ? '' : ', '}}
-                        </span>
-                </td>
-                <td>
-                    <span *ngFor="let category of book.categories; let last = last">
-                            <a class="form-control-static" [routerLink]="['/category', category?.id, 'view' ]">{{category.name}}</a>{{last ? '' : ', '}}
-                        </span>
-                </td>
-                <td>
-                    <div *ngIf="book.order">
-                        <a [routerLink]="['/order', book.order?.id, 'view' ]" >{{book.order?.id}}</a>
+                    <div *ngIf="book.category">
+                        <a [routerLink]="['/category', book.category?.id, 'view' ]" >{{book.category?.name}}</a>
                     </div>
                 </td>
                 <td class="text-right">

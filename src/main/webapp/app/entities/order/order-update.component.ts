@@ -4,6 +4,8 @@ import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
 import { filter, map } from 'rxjs/operators';
+import * as moment from 'moment';
+import { DATE_TIME_FORMAT } from 'app/shared/constants/input.constants';
 import { JhiAlertService } from 'ng-jhipster';
 import { IOrder, Order } from 'app/shared/model/order.model';
 import { OrderService } from './order.service';
@@ -21,7 +23,9 @@ export class OrderUpdateComponent implements OnInit {
 
   editForm = this.fb.group({
     id: [],
-    customer: []
+    placedAt: [null, [Validators.required]],
+    code: [null, [Validators.required]],
+    customer: [null, Validators.required]
   });
 
   constructor(
@@ -49,6 +53,8 @@ export class OrderUpdateComponent implements OnInit {
   updateForm(order: IOrder) {
     this.editForm.patchValue({
       id: order.id,
+      placedAt: order.placedAt != null ? order.placedAt.format(DATE_TIME_FORMAT) : null,
+      code: order.code,
       customer: order.customer
     });
   }
@@ -71,6 +77,8 @@ export class OrderUpdateComponent implements OnInit {
     return {
       ...new Order(),
       id: this.editForm.get(['id']).value,
+      placedAt: this.editForm.get(['placedAt']).value != null ? moment(this.editForm.get(['placedAt']).value, DATE_TIME_FORMAT) : undefined,
+      code: this.editForm.get(['code']).value,
       customer: this.editForm.get(['customer']).value
     };
   }

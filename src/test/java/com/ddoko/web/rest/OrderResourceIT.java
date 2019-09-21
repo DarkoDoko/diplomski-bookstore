@@ -2,7 +2,9 @@ package com.ddoko.web.rest;
 
 import com.ddoko.BookstoreApp;
 import com.ddoko.domain.Order;
+import com.ddoko.domain.Customer;
 import com.ddoko.repository.OrderRepository;
+import com.ddoko.service.OrderService;
 import com.ddoko.web.rest.errors.ExceptionTranslator;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Validator;
 
 import javax.persistence.EntityManager;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static com.ddoko.web.rest.TestUtil.createFormattingConversionService;
@@ -33,8 +37,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest(classes = BookstoreApp.class)
 public class OrderResourceIT {
 
+    private static final Instant DEFAULT_PLACED_AT = Instant.ofEpochMilli(0L);
+    private static final Instant UPDATED_PLACED_AT = Instant.now().truncatedTo(ChronoUnit.MILLIS);
+    private static final Instant SMALLER_PLACED_AT = Instant.ofEpochMilli(-1L);
+
+    private static final String DEFAULT_CODE = "AAAAAAAAAA";
+    private static final String UPDATED_CODE = "BBBBBBBBBB";
+
     @Autowired
     private OrderRepository orderRepository;
+
+    @Autowired
+    private OrderService orderService;
 
     @Autowired
     private MappingJackson2HttpMessageConverter jacksonMessageConverter;
@@ -58,7 +72,7 @@ public class OrderResourceIT {
     @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        final OrderResource orderResource = new OrderResource(orderRepository);
+        final OrderResource orderResource = new OrderResource(orderService);
         this.restOrderMockMvc = MockMvcBuilders.standaloneSetup(orderResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
@@ -74,7 +88,19 @@ public class OrderResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Order createEntity(EntityManager em) {
-        Order order = new Order();
+        Order order = new Order()
+            .placedAt(DEFAULT_PLACED_AT)
+            .code(DEFAULT_CODE);
+        // Add required entity
+        Customer customer;
+        if (TestUtil.findAll(em, Customer.class).isEmpty()) {
+            customer = CustomerResourceIT.createEntity(em);
+            em.persist(customer);
+            em.flush();
+        } else {
+            customer = TestUtil.findAll(em, Customer.class).get(0);
+        }
+        order.setCustomer(customer);
         return order;
     }
     /**
@@ -84,7 +110,19 @@ public class OrderResourceIT {
      * if they test an entity which requires the current entity.
      */
     public static Order createUpdatedEntity(EntityManager em) {
-        Order order = new Order();
+        Order order = new Order()
+            .placedAt(UPDATED_PLACED_AT)
+            .code(UPDATED_CODE);
+        // Add required entity
+        Customer customer;
+        if (TestUtil.findAll(em, Customer.class).isEmpty()) {
+            customer = CustomerResourceIT.createUpdatedEntity(em);
+            em.persist(customer);
+            em.flush();
+        } else {
+            customer = TestUtil.findAll(em, Customer.class).get(0);
+        }
+        order.setCustomer(customer);
         return order;
     }
 
@@ -108,6 +146,8 @@ public class OrderResourceIT {
         List<Order> orderList = orderRepository.findAll();
         assertThat(orderList).hasSize(databaseSizeBeforeCreate + 1);
         Order testOrder = orderList.get(orderList.size() - 1);
+        assertThat(testOrder.getPlacedAt()).isEqualTo(DEFAULT_PLACED_AT);
+        assertThat(testOrder.getCode()).isEqualTo(DEFAULT_CODE);
     }
 
     @Test
@@ -132,6 +172,42 @@ public class OrderResourceIT {
 
     @Test
     @Transactional
+    public void checkPlacedAtIsRequired() throws Exception {
+        int databaseSizeBeforeTest = orderRepository.findAll().size();
+        // set the field null
+        order.setPlacedAt(null);
+
+        // Create the Order, which fails.
+
+        restOrderMockMvc.perform(post("/api/orders")
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(order)))
+            .andExpect(status().isBadRequest());
+
+        List<Order> orderList = orderRepository.findAll();
+        assertThat(orderList).hasSize(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
+    public void checkCodeIsRequired() throws Exception {
+        int databaseSizeBeforeTest = orderRepository.findAll().size();
+        // set the field null
+        order.setCode(null);
+
+        // Create the Order, which fails.
+
+        restOrderMockMvc.perform(post("/api/orders")
+            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .content(TestUtil.convertObjectToJsonBytes(order)))
+            .andExpect(status().isBadRequest());
+
+        List<Order> orderList = orderRepository.findAll();
+        assertThat(orderList).hasSize(databaseSizeBeforeTest);
+    }
+
+    @Test
+    @Transactional
     public void getAllOrders() throws Exception {
         // Initialize the database
         orderRepository.saveAndFlush(order);
@@ -140,7 +216,9 @@ public class OrderResourceIT {
         restOrderMockMvc.perform(get("/api/orders?sort=id,desc"))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$.[*].id").value(hasItem(order.getId().intValue())));
+            .andExpect(jsonPath("$.[*].id").value(hasItem(order.getId().intValue())))
+            .andExpect(jsonPath("$.[*].placedAt").value(hasItem(DEFAULT_PLACED_AT.toString())))
+            .andExpect(jsonPath("$.[*].code").value(hasItem(DEFAULT_CODE.toString())));
     }
     
     @Test
@@ -153,7 +231,9 @@ public class OrderResourceIT {
         restOrderMockMvc.perform(get("/api/orders/{id}", order.getId()))
             .andExpect(status().isOk())
             .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
-            .andExpect(jsonPath("$.id").value(order.getId().intValue()));
+            .andExpect(jsonPath("$.id").value(order.getId().intValue()))
+            .andExpect(jsonPath("$.placedAt").value(DEFAULT_PLACED_AT.toString()))
+            .andExpect(jsonPath("$.code").value(DEFAULT_CODE.toString()));
     }
 
     @Test
@@ -168,7 +248,7 @@ public class OrderResourceIT {
     @Transactional
     public void updateOrder() throws Exception {
         // Initialize the database
-        orderRepository.saveAndFlush(order);
+        orderService.save(order);
 
         int databaseSizeBeforeUpdate = orderRepository.findAll().size();
 
@@ -176,6 +256,9 @@ public class OrderResourceIT {
         Order updatedOrder = orderRepository.findById(order.getId()).get();
         // Disconnect from session so that the updates on updatedOrder are not directly saved in db
         em.detach(updatedOrder);
+        updatedOrder
+            .placedAt(UPDATED_PLACED_AT)
+            .code(UPDATED_CODE);
 
         restOrderMockMvc.perform(put("/api/orders")
             .contentType(TestUtil.APPLICATION_JSON_UTF8)
@@ -186,6 +269,8 @@ public class OrderResourceIT {
         List<Order> orderList = orderRepository.findAll();
         assertThat(orderList).hasSize(databaseSizeBeforeUpdate);
         Order testOrder = orderList.get(orderList.size() - 1);
+        assertThat(testOrder.getPlacedAt()).isEqualTo(UPDATED_PLACED_AT);
+        assertThat(testOrder.getCode()).isEqualTo(UPDATED_CODE);
     }
 
     @Test
@@ -210,7 +295,7 @@ public class OrderResourceIT {
     @Transactional
     public void deleteOrder() throws Exception {
         // Initialize the database
-        orderRepository.saveAndFlush(order);
+        orderService.save(order);
 
         int databaseSizeBeforeDelete = orderRepository.findAll().size();
 

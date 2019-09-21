@@ -43,14 +43,8 @@
                 </dd>
                 <dt><span>Category</span></dt>
                 <dd>
-                    <span *ngFor="let category of book.categories; let last = last">
-                        <a [routerLink]="['/category', category?.id, 'view' ]">{{category.name}}</a>{{last ? '' : ', '}}
-                    </span>
-                </dd>
-                <dt><span>Order</span></dt>
-                <dd>
-                    <div *ngIf="book.order">
-                        <a [routerLink]="['/order', book.order?.id, 'view']">{{book.order?.id}}</a>
+                    <div *ngIf="book.category">
+                        <a [routerLink]="['/category', book.category?.id, 'view']">{{book.category?.name}}</a>
                     </div>
                 </dd>
             </dl>

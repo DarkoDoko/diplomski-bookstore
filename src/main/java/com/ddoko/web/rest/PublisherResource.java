@@ -1,8 +1,10 @@
 package com.ddoko.web.rest;
 
 import com.ddoko.domain.Publisher;
-import com.ddoko.repository.PublisherRepository;
+import com.ddoko.service.PublisherService;
 import com.ddoko.web.rest.errors.BadRequestAlertException;
+import com.ddoko.service.dto.PublisherCriteria;
+import com.ddoko.service.PublisherQueryService;
 
 import io.github.jhipster.web.util.HeaderUtil;
 import io.github.jhipster.web.util.ResponseUtil;
@@ -33,10 +35,13 @@ public class PublisherResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final PublisherRepository publisherRepository;
+    private final PublisherService publisherService;
 
-    public PublisherResource(PublisherRepository publisherRepository) {
-        this.publisherRepository = publisherRepository;
+    private final PublisherQueryService publisherQueryService;
+
+    public PublisherResource(PublisherService publisherService, PublisherQueryService publisherQueryService) {
+        this.publisherService = publisherService;
+        this.publisherQueryService = publisherQueryService;
     }
 
     /**
@@ -52,7 +57,7 @@ public class PublisherResource {
         if (publisher.getId() != null) {
             throw new BadRequestAlertException("A new publisher cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Publisher result = publisherRepository.save(publisher);
+        Publisher result = publisherService.save(publisher);
         return ResponseEntity.created(new URI("/api/publishers/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -73,7 +78,7 @@ public class PublisherResource {
         if (publisher.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        Publisher result = publisherRepository.save(publisher);
+        Publisher result = publisherService.save(publisher);
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, publisher.getId().toString()))
             .body(result);
@@ -83,12 +88,26 @@ public class PublisherResource {
      * {@code GET  /publishers} : get all the publishers.
      *
 
+     * @param criteria the criteria which the requested entities should match.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of publishers in body.
      */
     @GetMapping("/publishers")
-    public List<Publisher> getAllPublishers() {
-        log.debug("REST request to get all Publishers");
-        return publisherRepository.findAll();
+    public ResponseEntity<List<Publisher>> getAllPublishers(PublisherCriteria criteria) {
+        log.debug("REST request to get Publishers by criteria: {}", criteria);
+        List<Publisher> entityList = publisherQueryService.findByCriteria(criteria);
+        return ResponseEntity.ok().body(entityList);
+    }
+
+    /**
+    * {@code GET  /publishers/count} : count all the publishers.
+    *
+    * @param criteria the criteria which the requested entities should match.
+    * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
+    */
+    @GetMapping("/publishers/count")
+    public ResponseEntity<Long> countPublishers(PublisherCriteria criteria) {
+        log.debug("REST request to count Publishers by criteria: {}", criteria);
+        return ResponseEntity.ok().body(publisherQueryService.countByCriteria(criteria));
     }
 
     /**
@@ -100,7 +119,7 @@ public class PublisherResource {
     @GetMapping("/publishers/{id}")
     public ResponseEntity<Publisher> getPublisher(@PathVariable Long id) {
         log.debug("REST request to get Publisher : {}", id);
-        Optional<Publisher> publisher = publisherRepository.findById(id);
+        Optional<Publisher> publisher = publisherService.findOne(id);
         return ResponseUtil.wrapOrNotFound(publisher);
     }
 
@@ -113,7 +132,7 @@ public class PublisherResource {
     @DeleteMapping("/publishers/{id}")
     public ResponseEntity<Void> deletePublisher(@PathVariable Long id) {
         log.debug("REST request to delete Publisher : {}", id);
-        publisherRepository.deleteById(id);
+        publisherService.delete(id);
         return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString())).build();
     }
 }

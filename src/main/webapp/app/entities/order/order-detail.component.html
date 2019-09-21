@@ -5,10 +5,18 @@
             <hr>
             <jhi-alert-error></jhi-alert-error>
             <dl class="row-md jh-entity-details">
+                <dt><span>Placed At</span></dt>
+                <dd>
+                    <span>{{order.placedAt}}</span>
+                </dd>
+                <dt><span>Code</span></dt>
+                <dd>
+                    <span>{{order.code}}</span>
+                </dd>
                 <dt><span>Customer</span></dt>
                 <dd>
                     <div *ngIf="order.customer">
-                        <a [routerLink]="['/customer', order.customer?.id, 'view']">{{order.customer?.id}}</a>
+                        <a [routerLink]="['/customer', order.customer?.id, 'view']">{{order.customer?.email}}</a>
                     </div>
                 </dd>
             </dl>

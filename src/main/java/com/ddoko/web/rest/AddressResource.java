@@ -1,7 +1,7 @@
 package com.ddoko.web.rest;
 
 import com.ddoko.domain.Address;
-import com.ddoko.repository.AddressRepository;
+import com.ddoko.service.AddressService;
 import com.ddoko.web.rest.errors.BadRequestAlertException;
 
 import io.github.jhipster.web.util.HeaderUtil;
@@ -33,10 +33,10 @@ public class AddressResource {
     @Value("${jhipster.clientApp.name}")
     private String applicationName;
 
-    private final AddressRepository addressRepository;
+    private final AddressService addressService;
 
-    public AddressResource(AddressRepository addressRepository) {
-        this.addressRepository = addressRepository;
+    public AddressResource(AddressService addressService) {
+        this.addressService = addressService;
     }
 
     /**
@@ -52,7 +52,7 @@ public class AddressResource {
         if (address.getId() != null) {
             throw new BadRequestAlertException("A new address cannot already have an ID", ENTITY_NAME, "idexists");
         }
-        Address result = addressRepository.save(address);
+        Address result = addressService.save(address);
         return ResponseEntity.created(new URI("/api/addresses/" + result.getId()))
             .headers(HeaderUtil.createEntityCreationAlert(applicationName, false, ENTITY_NAME, result.getId().toString()))
             .body(result);
@@ -73,7 +73,7 @@ public class AddressResource {
         if (address.getId() == null) {
             throw new BadRequestAlertException("Invalid id", ENTITY_NAME, "idnull");
         }
-        Address result = addressRepository.save(address);
+        Address result = addressService.save(address);
         return ResponseEntity.ok()
             .headers(HeaderUtil.createEntityUpdateAlert(applicationName, false, ENTITY_NAME, address.getId().toString()))
             .body(result);
@@ -88,7 +88,7 @@ public class AddressResource {
     @GetMapping("/addresses")
     public List<Address> getAllAddresses() {
         log.debug("REST request to get all Addresses");
-        return addressRepository.findAll();
+        return addressService.findAll();
     }
 
     /**
@@ -100,7 +100,7 @@ public class AddressResource {
     @GetMapping("/addresses/{id}")
     public ResponseEntity<Address> getAddress(@PathVariable Long id) {
         log.debug("REST request to get Address : {}", id);
-        Optional<Address> address = addressRepository.findById(id);
+        Optional<Address> address = addressService.findOne(id);
         return ResponseUtil.wrapOrNotFound(address);
     }
 
@@ -113,7 +113,7 @@ public class AddressResource {
     @DeleteMapping("/addresses/{id}")
     public ResponseEntity<Void> deleteAddress(@PathVariable Long id) {
         log.debug("REST request to delete Address : {}", id);
-        addressRepository.deleteById(id);
+        addressService.delete(id);
         return ResponseEntity.noContent().headers(HeaderUtil.createEntityDeletionAlert(applicationName, false, ENTITY_NAME, id.toString())).build();
     }
 }

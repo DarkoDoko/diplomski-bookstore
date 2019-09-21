@@ -35,7 +35,6 @@ export class BookUpdatePage {
   publisherSelect = element(by.id('field_publisher'));
   authorSelect = element(by.id('field_author'));
   categorySelect = element(by.id('field_category'));
-  orderSelect = element(by.id('field_order'));
 
   async getPageTitle() {
     return this.pageTitle.getText();
@@ -144,25 +143,6 @@ export class BookUpdatePage {
 
   async getCategorySelectedOption() {
     return await this.categorySelect.element(by.css('option:checked')).getText();
-  }
-
-  async orderSelectLastOption(timeout?: number) {
-    await this.orderSelect
-      .all(by.tagName('option'))
-      .last()
-      .click();
-  }
-
-  async orderSelectOption(option) {
-    await this.orderSelect.sendKeys(option);
-  }
-
-  getOrderSelect(): ElementFinder {
-    return this.orderSelect;
-  }
-
-  async getOrderSelectedOption() {
-    return await this.orderSelect.element(by.css('option:checked')).getText();
   }
 
   async save(timeout?: number) {

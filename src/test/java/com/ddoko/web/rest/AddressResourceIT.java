@@ -3,6 +3,7 @@ package com.ddoko.web.rest;
 import com.ddoko.BookstoreApp;
 import com.ddoko.domain.Address;
 import com.ddoko.repository.AddressRepository;
+import com.ddoko.service.AddressService;
 import com.ddoko.web.rest.errors.ExceptionTranslator;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +53,9 @@ public class AddressResourceIT {
     private AddressRepository addressRepository;
 
     @Autowired
+    private AddressService addressService;
+
+    @Autowired
     private MappingJackson2HttpMessageConverter jacksonMessageConverter;
 
     @Autowired
@@ -73,7 +77,7 @@ public class AddressResourceIT {
     @BeforeEach
     public void setup() {
         MockitoAnnotations.initMocks(this);
-        final AddressResource addressResource = new AddressResource(addressRepository);
+        final AddressResource addressResource = new AddressResource(addressService);
         this.restAddressMockMvc = MockMvcBuilders.standaloneSetup(addressResource)
             .setCustomArgumentResolvers(pageableArgumentResolver)
             .setControllerAdvice(exceptionTranslator)
@@ -244,7 +248,7 @@ public class AddressResourceIT {
     @Transactional
     public void updateAddress() throws Exception {
         // Initialize the database
-        addressRepository.saveAndFlush(address);
+        addressService.save(address);
 
         int databaseSizeBeforeUpdate = addressRepository.findAll().size();
 
@@ -297,7 +301,7 @@ public class AddressResourceIT {
     @Transactional
     public void deleteAddress() throws Exception {
         // Initialize the database
-        addressRepository.saveAndFlush(address);
+        addressService.save(address);
 
         int databaseSizeBeforeDelete = addressRepository.findAll().size();
 

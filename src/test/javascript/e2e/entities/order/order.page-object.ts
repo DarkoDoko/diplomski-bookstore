@@ -26,10 +26,28 @@ export class OrderUpdatePage {
   pageTitle = element(by.id('jhi-order-heading'));
   saveButton = element(by.id('save-entity'));
   cancelButton = element(by.id('cancel-save'));
+  placedAtInput = element(by.id('field_placedAt'));
+  codeInput = element(by.id('field_code'));
   customerSelect = element(by.id('field_customer'));
 
   async getPageTitle() {
     return this.pageTitle.getText();
+  }
+
+  async setPlacedAtInput(placedAt) {
+    await this.placedAtInput.sendKeys(placedAt);
+  }
+
+  async getPlacedAtInput() {
+    return await this.placedAtInput.getAttribute('value');
+  }
+
+  async setCodeInput(code) {
+    await this.codeInput.sendKeys(code);
+  }
+
+  async getCodeInput() {
+    return await this.codeInput.getAttribute('value');
   }
 
   async customerSelectLastOption(timeout?: number) {

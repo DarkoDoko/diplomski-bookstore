@@ -7,23 +7,25 @@
             "fieldValidateRules": [
                 "required"
             ]
+        },
+        {
+            "fieldName": "description",
+            "fieldType": "String"
         }
     ],
     "relationships": [
         {
-            "relationshipType": "many-to-many",
+            "relationshipType": "one-to-many",
             "otherEntityName": "book",
             "otherEntityRelationshipName": "category",
-            "relationshipName": "book",
-            "otherEntityField": "id",
-            "ownerSide": false
+            "relationshipName": "book"
         }
     ],
     "changelogDate": "20190921121104",
     "entityTableName": "category",
     "dto": "no",
-    "pagination": "no",
-    "service": "no",
+    "pagination": "pagination",
+    "service": "serviceImpl",
     "jpaMetamodelFiltering": false,
     "fluentMethods": true,
     "clientRootFolder": "",
