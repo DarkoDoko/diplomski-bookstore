@@ -1,13 +1,13 @@
 
 entity Customer {
-	firstName String required,
-    lastName String required,
+	firstName String required
+    lastName String required
     email String required pattern(/^[^@\s]+@[^@\s]+\.[^@\s]+$/),
     telephone String
 }
 
 entity Address {
-	address1 String,
+	address1 String
     address2 String,
     city String,
     postcode String required maxlength(10),
@@ -15,7 +15,7 @@ entity Address {
 }
 	
 entity Book {
-	ISBN String required,
+	iSBN String required,
     title String required,
     price BigDecimal required min(0),
     numberOfPages Integer,
@@ -57,8 +57,8 @@ relationship ManyToOne {
 }
 
 relationship OneToMany {
-	Customer{address} to Address{customer},
-    Customer{order} to Order{customer(email) required},
+	Customer{address} to Address{customer}
+    Customer{order} to Order{customer(email) required}
     Order{orderItem} to OrderItem{order(code) required}
     Category{book} to Book{category(name)}
 }
