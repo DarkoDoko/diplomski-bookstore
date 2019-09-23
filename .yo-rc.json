@@ -33,6 +33,8 @@
     "dtoSuffix": "DTO",
     "otherModules": [],
     "enableTranslation": false,
-    "blueprints": []
+    "blueprints": [],
+    "herokuAppName": "ddoko-bookstore",
+    "herokuDeployType": "git"
   }
 }
