@@ -5,27 +5,21 @@ import com.ddoko.domain.Author;
 import com.ddoko.domain.Book;
 import com.ddoko.repository.AuthorRepository;
 import com.ddoko.service.AuthorService;
-import com.ddoko.web.rest.errors.ExceptionTranslator;
 import com.ddoko.service.dto.AuthorCriteria;
 import com.ddoko.service.AuthorQueryService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.Validator;
-
 import javax.persistence.EntityManager;
 import java.util.List;
 
-import static com.ddoko.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -35,6 +29,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Integration tests for the {@link AuthorResource} REST controller.
  */
 @SpringBootTest(classes = BookstoreApp.class)
+
+@AutoConfigureMockMvc
+@WithMockUser
 public class AuthorResourceIT {
 
     private static final String DEFAULT_FIRST_NAME = "AAAAAAAAAA";
@@ -53,35 +50,12 @@ public class AuthorResourceIT {
     private AuthorQueryService authorQueryService;
 
     @Autowired
-    private MappingJackson2HttpMessageConverter jacksonMessageConverter;
-
-    @Autowired
-    private PageableHandlerMethodArgumentResolver pageableArgumentResolver;
-
-    @Autowired
-    private ExceptionTranslator exceptionTranslator;
-
-    @Autowired
     private EntityManager em;
 
     @Autowired
-    private Validator validator;
-
     private MockMvc restAuthorMockMvc;
 
     private Author author;
-
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.initMocks(this);
-        final AuthorResource authorResource = new AuthorResource(authorService, authorQueryService);
-        this.restAuthorMockMvc = MockMvcBuilders.standaloneSetup(authorResource)
-            .setCustomArgumentResolvers(pageableArgumentResolver)
-            .setControllerAdvice(exceptionTranslator)
-            .setConversionService(createFormattingConversionService())
-            .setMessageConverters(jacksonMessageConverter)
-            .setValidator(validator).build();
-    }
 
     /**
      * Create an entity for this test.
@@ -120,7 +94,7 @@ public class AuthorResourceIT {
 
         // Create the Author
         restAuthorMockMvc.perform(post("/api/authors")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(author)))
             .andExpect(status().isCreated());
 
@@ -142,7 +116,7 @@ public class AuthorResourceIT {
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restAuthorMockMvc.perform(post("/api/authors")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(author)))
             .andExpect(status().isBadRequest());
 
@@ -162,7 +136,7 @@ public class AuthorResourceIT {
         // Create the Author, which fails.
 
         restAuthorMockMvc.perform(post("/api/authors")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(author)))
             .andExpect(status().isBadRequest());
 
@@ -180,7 +154,7 @@ public class AuthorResourceIT {
         // Create the Author, which fails.
 
         restAuthorMockMvc.perform(post("/api/authors")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(author)))
             .andExpect(status().isBadRequest());
 
@@ -197,10 +171,10 @@ public class AuthorResourceIT {
         // Get all the authorList
         restAuthorMockMvc.perform(get("/api/authors?sort=id,desc"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(author.getId().intValue())))
-            .andExpect(jsonPath("$.[*].firstName").value(hasItem(DEFAULT_FIRST_NAME.toString())))
-            .andExpect(jsonPath("$.[*].lastName").value(hasItem(DEFAULT_LAST_NAME.toString())));
+            .andExpect(jsonPath("$.[*].firstName").value(hasItem(DEFAULT_FIRST_NAME)))
+            .andExpect(jsonPath("$.[*].lastName").value(hasItem(DEFAULT_LAST_NAME)));
     }
     
     @Test
@@ -212,11 +186,31 @@ public class AuthorResourceIT {
         // Get the author
         restAuthorMockMvc.perform(get("/api/authors/{id}", author.getId()))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(author.getId().intValue()))
-            .andExpect(jsonPath("$.firstName").value(DEFAULT_FIRST_NAME.toString()))
-            .andExpect(jsonPath("$.lastName").value(DEFAULT_LAST_NAME.toString()));
+            .andExpect(jsonPath("$.firstName").value(DEFAULT_FIRST_NAME))
+            .andExpect(jsonPath("$.lastName").value(DEFAULT_LAST_NAME));
     }
+
+
+    @Test
+    @Transactional
+    public void getAuthorsByIdFiltering() throws Exception {
+        // Initialize the database
+        authorRepository.saveAndFlush(author);
+
+        Long id = author.getId();
+
+        defaultAuthorShouldBeFound("id.equals=" + id);
+        defaultAuthorShouldNotBeFound("id.notEquals=" + id);
+
+        defaultAuthorShouldBeFound("id.greaterThanOrEqual=" + id);
+        defaultAuthorShouldNotBeFound("id.greaterThan=" + id);
+
+        defaultAuthorShouldBeFound("id.lessThanOrEqual=" + id);
+        defaultAuthorShouldNotBeFound("id.lessThan=" + id);
+    }
+
 
     @Test
     @Transactional
@@ -229,6 +223,19 @@ public class AuthorResourceIT {
 
         // Get all the authorList where firstName equals to UPDATED_FIRST_NAME
         defaultAuthorShouldNotBeFound("firstName.equals=" + UPDATED_FIRST_NAME);
+    }
+
+    @Test
+    @Transactional
+    public void getAllAuthorsByFirstNameIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        authorRepository.saveAndFlush(author);
+
+        // Get all the authorList where firstName not equals to DEFAULT_FIRST_NAME
+        defaultAuthorShouldNotBeFound("firstName.notEquals=" + DEFAULT_FIRST_NAME);
+
+        // Get all the authorList where firstName not equals to UPDATED_FIRST_NAME
+        defaultAuthorShouldBeFound("firstName.notEquals=" + UPDATED_FIRST_NAME);
     }
 
     @Test
@@ -256,6 +263,32 @@ public class AuthorResourceIT {
         // Get all the authorList where firstName is null
         defaultAuthorShouldNotBeFound("firstName.specified=false");
     }
+                @Test
+    @Transactional
+    public void getAllAuthorsByFirstNameContainsSomething() throws Exception {
+        // Initialize the database
+        authorRepository.saveAndFlush(author);
+
+        // Get all the authorList where firstName contains DEFAULT_FIRST_NAME
+        defaultAuthorShouldBeFound("firstName.contains=" + DEFAULT_FIRST_NAME);
+
+        // Get all the authorList where firstName contains UPDATED_FIRST_NAME
+        defaultAuthorShouldNotBeFound("firstName.contains=" + UPDATED_FIRST_NAME);
+    }
+
+    @Test
+    @Transactional
+    public void getAllAuthorsByFirstNameNotContainsSomething() throws Exception {
+        // Initialize the database
+        authorRepository.saveAndFlush(author);
+
+        // Get all the authorList where firstName does not contain DEFAULT_FIRST_NAME
+        defaultAuthorShouldNotBeFound("firstName.doesNotContain=" + DEFAULT_FIRST_NAME);
+
+        // Get all the authorList where firstName does not contain UPDATED_FIRST_NAME
+        defaultAuthorShouldBeFound("firstName.doesNotContain=" + UPDATED_FIRST_NAME);
+    }
+
 
     @Test
     @Transactional
@@ -268,6 +301,19 @@ public class AuthorResourceIT {
 
         // Get all the authorList where lastName equals to UPDATED_LAST_NAME
         defaultAuthorShouldNotBeFound("lastName.equals=" + UPDATED_LAST_NAME);
+    }
+
+    @Test
+    @Transactional
+    public void getAllAuthorsByLastNameIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        authorRepository.saveAndFlush(author);
+
+        // Get all the authorList where lastName not equals to DEFAULT_LAST_NAME
+        defaultAuthorShouldNotBeFound("lastName.notEquals=" + DEFAULT_LAST_NAME);
+
+        // Get all the authorList where lastName not equals to UPDATED_LAST_NAME
+        defaultAuthorShouldBeFound("lastName.notEquals=" + UPDATED_LAST_NAME);
     }
 
     @Test
@@ -295,6 +341,32 @@ public class AuthorResourceIT {
         // Get all the authorList where lastName is null
         defaultAuthorShouldNotBeFound("lastName.specified=false");
     }
+                @Test
+    @Transactional
+    public void getAllAuthorsByLastNameContainsSomething() throws Exception {
+        // Initialize the database
+        authorRepository.saveAndFlush(author);
+
+        // Get all the authorList where lastName contains DEFAULT_LAST_NAME
+        defaultAuthorShouldBeFound("lastName.contains=" + DEFAULT_LAST_NAME);
+
+        // Get all the authorList where lastName contains UPDATED_LAST_NAME
+        defaultAuthorShouldNotBeFound("lastName.contains=" + UPDATED_LAST_NAME);
+    }
+
+    @Test
+    @Transactional
+    public void getAllAuthorsByLastNameNotContainsSomething() throws Exception {
+        // Initialize the database
+        authorRepository.saveAndFlush(author);
+
+        // Get all the authorList where lastName does not contain DEFAULT_LAST_NAME
+        defaultAuthorShouldNotBeFound("lastName.doesNotContain=" + DEFAULT_LAST_NAME);
+
+        // Get all the authorList where lastName does not contain UPDATED_LAST_NAME
+        defaultAuthorShouldBeFound("lastName.doesNotContain=" + UPDATED_LAST_NAME);
+    }
+
 
     @Test
     @Transactional
@@ -321,7 +393,7 @@ public class AuthorResourceIT {
     private void defaultAuthorShouldBeFound(String filter) throws Exception {
         restAuthorMockMvc.perform(get("/api/authors?sort=id,desc&" + filter))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(author.getId().intValue())))
             .andExpect(jsonPath("$.[*].firstName").value(hasItem(DEFAULT_FIRST_NAME)))
             .andExpect(jsonPath("$.[*].lastName").value(hasItem(DEFAULT_LAST_NAME)));
@@ -329,7 +401,7 @@ public class AuthorResourceIT {
         // Check, that the count call also returns 1
         restAuthorMockMvc.perform(get("/api/authors/count?sort=id,desc&" + filter))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("1"));
     }
 
@@ -339,14 +411,14 @@ public class AuthorResourceIT {
     private void defaultAuthorShouldNotBeFound(String filter) throws Exception {
         restAuthorMockMvc.perform(get("/api/authors?sort=id,desc&" + filter))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
 
         // Check, that the count call also returns 0
         restAuthorMockMvc.perform(get("/api/authors/count?sort=id,desc&" + filter))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("0"));
     }
 
@@ -376,7 +448,7 @@ public class AuthorResourceIT {
             .lastName(UPDATED_LAST_NAME);
 
         restAuthorMockMvc.perform(put("/api/authors")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(updatedAuthor)))
             .andExpect(status().isOk());
 
@@ -397,7 +469,7 @@ public class AuthorResourceIT {
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restAuthorMockMvc.perform(put("/api/authors")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(author)))
             .andExpect(status().isBadRequest());
 
@@ -416,26 +488,11 @@ public class AuthorResourceIT {
 
         // Delete the author
         restAuthorMockMvc.perform(delete("/api/authors/{id}", author.getId())
-            .accept(TestUtil.APPLICATION_JSON_UTF8))
+            .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 
         // Validate the database contains one less item
         List<Author> authorList = authorRepository.findAll();
         assertThat(authorList).hasSize(databaseSizeBeforeDelete - 1);
-    }
-
-    @Test
-    @Transactional
-    public void equalsVerifier() throws Exception {
-        TestUtil.equalsVerifier(Author.class);
-        Author author1 = new Author();
-        author1.setId(1L);
-        Author author2 = new Author();
-        author2.setId(author1.getId());
-        assertThat(author1).isEqualTo(author2);
-        author2.setId(2L);
-        assertThat(author1).isNotEqualTo(author2);
-        author1.setId(null);
-        assertThat(author1).isNotEqualTo(author2);
     }
 }

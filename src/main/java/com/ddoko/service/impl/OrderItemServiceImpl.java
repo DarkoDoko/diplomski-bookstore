@@ -51,7 +51,6 @@ public class OrderItemServiceImpl implements OrderItemService {
         return orderItemRepository.findAll();
     }
 
-
     /**
      * Get one orderItem by id.
      *

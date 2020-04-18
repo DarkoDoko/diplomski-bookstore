@@ -61,7 +61,6 @@ public class BookServiceImpl implements BookService {
     public Page<Book> findAllWithEagerRelationships(Pageable pageable) {
         return bookRepository.findAllWithEagerRelationships(pageable);
     }
-    
 
     /**
      * Get one book by id.

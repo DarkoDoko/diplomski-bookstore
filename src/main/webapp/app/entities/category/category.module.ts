@@ -1,29 +1,16 @@
-import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
-import { BookstoreSharedModule } from 'app/shared';
-import {
-  CategoryComponent,
-  CategoryDetailComponent,
-  CategoryUpdateComponent,
-  CategoryDeletePopupComponent,
-  CategoryDeleteDialogComponent,
-  categoryRoute,
-  categoryPopupRoute
-} from './';
-
-const ENTITY_STATES = [...categoryRoute, ...categoryPopupRoute];
+import { BookstoreSharedModule } from 'app/shared/shared.module';
+import { CategoryComponent } from './category.component';
+import { CategoryDetailComponent } from './category-detail.component';
+import { CategoryUpdateComponent } from './category-update.component';
+import { CategoryDeleteDialogComponent } from './category-delete-dialog.component';
+import { categoryRoute } from './category.route';
 
 @NgModule({
-  imports: [BookstoreSharedModule, RouterModule.forChild(ENTITY_STATES)],
-  declarations: [
-    CategoryComponent,
-    CategoryDetailComponent,
-    CategoryUpdateComponent,
-    CategoryDeleteDialogComponent,
-    CategoryDeletePopupComponent
-  ],
-  entryComponents: [CategoryComponent, CategoryUpdateComponent, CategoryDeleteDialogComponent, CategoryDeletePopupComponent],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [BookstoreSharedModule, RouterModule.forChild(categoryRoute)],
+  declarations: [CategoryComponent, CategoryDetailComponent, CategoryUpdateComponent, CategoryDeleteDialogComponent],
+  entryComponents: [CategoryDeleteDialogComponent]
 })
 export class BookstoreCategoryModule {}

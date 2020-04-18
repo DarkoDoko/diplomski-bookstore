@@ -3,7 +3,7 @@
     "promptValues": {
       "packageName": "com.ddoko"
     },
-    "jhipsterVersion": "6.2.0",
+    "jhipsterVersion": "6.8.0",
     "applicationType": "monolith",
     "baseName": "bookstore",
     "packageName": "com.ddoko",
@@ -35,6 +35,8 @@
     "enableTranslation": false,
     "blueprints": [],
     "herokuAppName": "ddoko-bookstore",
-    "herokuDeployType": "git"
+    "herokuDeployType": "git",
+    "embeddableLaunchScript": false,
+    "creationTimestamp": 1587237554479
   }
 }

@@ -8,17 +8,15 @@ import { IBook } from 'app/shared/model/book.model';
   templateUrl: './book-detail.component.html'
 })
 export class BookDetailComponent implements OnInit {
-  book: IBook;
+  book: IBook | null = null;
 
   constructor(protected activatedRoute: ActivatedRoute) {}
 
-  ngOnInit() {
-    this.activatedRoute.data.subscribe(({ book }) => {
-      this.book = book;
-    });
+  ngOnInit(): void {
+    this.activatedRoute.data.subscribe(({ book }) => (this.book = book));
   }
 
-  previousState() {
+  previousState(): void {
     window.history.back();
   }
 }

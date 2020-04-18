@@ -51,7 +51,6 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findAll();
     }
 
-
     /**
      * Get one order by id.
      *

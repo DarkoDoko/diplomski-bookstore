@@ -1,28 +1,34 @@
 import { Injectable } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
-import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot, Routes } from '@angular/router';
-import { JhiPaginationUtil, JhiResolvePagingParams } from 'ng-jhipster';
-import { UserRouteAccessService } from 'app/core';
-import { Observable, of } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { Customer } from 'app/shared/model/customer.model';
+import { Resolve, ActivatedRouteSnapshot, Routes, Router } from '@angular/router';
+import { JhiResolvePagingParams } from 'ng-jhipster';
+import { Observable, of, EMPTY } from 'rxjs';
+import { flatMap } from 'rxjs/operators';
+
+import { Authority } from 'app/shared/constants/authority.constants';
+import { UserRouteAccessService } from 'app/core/auth/user-route-access-service';
+import { ICustomer, Customer } from 'app/shared/model/customer.model';
 import { CustomerService } from './customer.service';
 import { CustomerComponent } from './customer.component';
 import { CustomerDetailComponent } from './customer-detail.component';
 import { CustomerUpdateComponent } from './customer-update.component';
-import { CustomerDeletePopupComponent } from './customer-delete-dialog.component';
-import { ICustomer } from 'app/shared/model/customer.model';
 
 @Injectable({ providedIn: 'root' })
 export class CustomerResolve implements Resolve<ICustomer> {
-  constructor(private service: CustomerService) {}
+  constructor(private service: CustomerService, private router: Router) {}
 
-  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<ICustomer> {
+  resolve(route: ActivatedRouteSnapshot): Observable<ICustomer> | Observable<never> {
     const id = route.params['id'];
     if (id) {
       return this.service.find(id).pipe(
-        filter((response: HttpResponse<Customer>) => response.ok),
-        map((customer: HttpResponse<Customer>) => customer.body)
+        flatMap((customer: HttpResponse<Customer>) => {
+          if (customer.body) {
+            return of(customer.body);
+          } else {
+            this.router.navigate(['404']);
+            return EMPTY;
+          }
+        })
       );
     }
     return of(new Customer());
@@ -37,7 +43,7 @@ export const customerRoute: Routes = [
       pagingParams: JhiResolvePagingParams
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       defaultSort: 'id,asc',
       pageTitle: 'Customers'
     },
@@ -50,7 +56,7 @@ export const customerRoute: Routes = [
       customer: CustomerResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'Customers'
     },
     canActivate: [UserRouteAccessService]
@@ -62,7 +68,7 @@ export const customerRoute: Routes = [
       customer: CustomerResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'Customers'
     },
     canActivate: [UserRouteAccessService]
@@ -74,25 +80,9 @@ export const customerRoute: Routes = [
       customer: CustomerResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'Customers'
     },
     canActivate: [UserRouteAccessService]
-  }
-];
-
-export const customerPopupRoute: Routes = [
-  {
-    path: ':id/delete',
-    component: CustomerDeletePopupComponent,
-    resolve: {
-      customer: CustomerResolve
-    },
-    data: {
-      authorities: ['ROLE_USER'],
-      pageTitle: 'Customers'
-    },
-    canActivate: [UserRouteAccessService],
-    outlet: 'popup'
   }
 ];

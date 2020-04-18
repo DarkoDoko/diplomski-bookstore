@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -93,9 +92,7 @@ public class BookResource {
     /**
      * {@code GET  /books} : get all the books.
      *
-
      * @param pageable the pagination information.
-
      * @param criteria the criteria which the requested entities should match.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of books in body.
      */
@@ -108,11 +105,11 @@ public class BookResource {
     }
 
     /**
-    * {@code GET  /books/count} : count all the books.
-    *
-    * @param criteria the criteria which the requested entities should match.
-    * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
-    */
+     * {@code GET  /books/count} : count all the books.
+     *
+     * @param criteria the criteria which the requested entities should match.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
+     */
     @GetMapping("/books/count")
     public ResponseEntity<Long> countBooks(BookCriteria criteria) {
         log.debug("REST request to count Books by criteria: {}", criteria);

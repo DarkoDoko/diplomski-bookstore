@@ -8,17 +8,15 @@ import { ICategory } from 'app/shared/model/category.model';
   templateUrl: './category-detail.component.html'
 })
 export class CategoryDetailComponent implements OnInit {
-  category: ICategory;
+  category: ICategory | null = null;
 
   constructor(protected activatedRoute: ActivatedRoute) {}
 
-  ngOnInit() {
-    this.activatedRoute.data.subscribe(({ category }) => {
-      this.category = category;
-    });
+  ngOnInit(): void {
+    this.activatedRoute.data.subscribe(({ category }) => (this.category = category));
   }
 
-  previousState() {
+  previousState(): void {
     window.history.back();
   }
 }

@@ -1,27 +1,33 @@
 import { Injectable } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
-import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot, Routes } from '@angular/router';
-import { UserRouteAccessService } from 'app/core';
-import { Observable, of } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { Address } from 'app/shared/model/address.model';
+import { Resolve, ActivatedRouteSnapshot, Routes, Router } from '@angular/router';
+import { Observable, of, EMPTY } from 'rxjs';
+import { flatMap } from 'rxjs/operators';
+
+import { Authority } from 'app/shared/constants/authority.constants';
+import { UserRouteAccessService } from 'app/core/auth/user-route-access-service';
+import { IAddress, Address } from 'app/shared/model/address.model';
 import { AddressService } from './address.service';
 import { AddressComponent } from './address.component';
 import { AddressDetailComponent } from './address-detail.component';
 import { AddressUpdateComponent } from './address-update.component';
-import { AddressDeletePopupComponent } from './address-delete-dialog.component';
-import { IAddress } from 'app/shared/model/address.model';
 
 @Injectable({ providedIn: 'root' })
 export class AddressResolve implements Resolve<IAddress> {
-  constructor(private service: AddressService) {}
+  constructor(private service: AddressService, private router: Router) {}
 
-  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<IAddress> {
+  resolve(route: ActivatedRouteSnapshot): Observable<IAddress> | Observable<never> {
     const id = route.params['id'];
     if (id) {
       return this.service.find(id).pipe(
-        filter((response: HttpResponse<Address>) => response.ok),
-        map((address: HttpResponse<Address>) => address.body)
+        flatMap((address: HttpResponse<Address>) => {
+          if (address.body) {
+            return of(address.body);
+          } else {
+            this.router.navigate(['404']);
+            return EMPTY;
+          }
+        })
       );
     }
     return of(new Address());
@@ -33,7 +39,7 @@ export const addressRoute: Routes = [
     path: '',
     component: AddressComponent,
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'Addresses'
     },
     canActivate: [UserRouteAccessService]
@@ -45,7 +51,7 @@ export const addressRoute: Routes = [
       address: AddressResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'Addresses'
     },
     canActivate: [UserRouteAccessService]
@@ -57,7 +63,7 @@ export const addressRoute: Routes = [
       address: AddressResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'Addresses'
     },
     canActivate: [UserRouteAccessService]
@@ -69,25 +75,9 @@ export const addressRoute: Routes = [
       address: AddressResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'Addresses'
     },
     canActivate: [UserRouteAccessService]
-  }
-];
-
-export const addressPopupRoute: Routes = [
-  {
-    path: ':id/delete',
-    component: AddressDeletePopupComponent,
-    resolve: {
-      address: AddressResolve
-    },
-    data: {
-      authorities: ['ROLE_USER'],
-      pageTitle: 'Addresses'
-    },
-    canActivate: [UserRouteAccessService],
-    outlet: 'popup'
   }
 ];

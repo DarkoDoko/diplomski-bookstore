@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -87,7 +86,6 @@ public class PublisherResource {
     /**
      * {@code GET  /publishers} : get all the publishers.
      *
-
      * @param criteria the criteria which the requested entities should match.
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of publishers in body.
      */
@@ -99,11 +97,11 @@ public class PublisherResource {
     }
 
     /**
-    * {@code GET  /publishers/count} : count all the publishers.
-    *
-    * @param criteria the criteria which the requested entities should match.
-    * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
-    */
+     * {@code GET  /publishers/count} : count all the publishers.
+     *
+     * @param criteria the criteria which the requested entities should match.
+     * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the count in body.
+     */
     @GetMapping("/publishers/count")
     public ResponseEntity<Long> countPublishers(PublisherCriteria criteria) {
         log.debug("REST request to count Publishers by criteria: {}", criteria);

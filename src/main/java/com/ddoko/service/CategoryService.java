@@ -28,7 +28,6 @@ public interface CategoryService {
      */
     Page<Category> findAll(Pageable pageable);
 
-
     /**
      * Get the "id" category.
      *

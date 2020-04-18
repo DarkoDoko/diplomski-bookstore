@@ -4,25 +4,19 @@ import com.ddoko.BookstoreApp;
 import com.ddoko.domain.Category;
 import com.ddoko.repository.CategoryRepository;
 import com.ddoko.service.CategoryService;
-import com.ddoko.web.rest.errors.ExceptionTranslator;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.Validator;
-
 import javax.persistence.EntityManager;
 import java.util.List;
 
-import static com.ddoko.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -32,6 +26,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Integration tests for the {@link CategoryResource} REST controller.
  */
 @SpringBootTest(classes = BookstoreApp.class)
+
+@AutoConfigureMockMvc
+@WithMockUser
 public class CategoryResourceIT {
 
     private static final String DEFAULT_NAME = "AAAAAAAAAA";
@@ -47,35 +44,12 @@ public class CategoryResourceIT {
     private CategoryService categoryService;
 
     @Autowired
-    private MappingJackson2HttpMessageConverter jacksonMessageConverter;
-
-    @Autowired
-    private PageableHandlerMethodArgumentResolver pageableArgumentResolver;
-
-    @Autowired
-    private ExceptionTranslator exceptionTranslator;
-
-    @Autowired
     private EntityManager em;
 
     @Autowired
-    private Validator validator;
-
     private MockMvc restCategoryMockMvc;
 
     private Category category;
-
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.initMocks(this);
-        final CategoryResource categoryResource = new CategoryResource(categoryService);
-        this.restCategoryMockMvc = MockMvcBuilders.standaloneSetup(categoryResource)
-            .setCustomArgumentResolvers(pageableArgumentResolver)
-            .setControllerAdvice(exceptionTranslator)
-            .setConversionService(createFormattingConversionService())
-            .setMessageConverters(jacksonMessageConverter)
-            .setValidator(validator).build();
-    }
 
     /**
      * Create an entity for this test.
@@ -114,7 +88,7 @@ public class CategoryResourceIT {
 
         // Create the Category
         restCategoryMockMvc.perform(post("/api/categories")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(category)))
             .andExpect(status().isCreated());
 
@@ -136,7 +110,7 @@ public class CategoryResourceIT {
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restCategoryMockMvc.perform(post("/api/categories")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(category)))
             .andExpect(status().isBadRequest());
 
@@ -156,7 +130,7 @@ public class CategoryResourceIT {
         // Create the Category, which fails.
 
         restCategoryMockMvc.perform(post("/api/categories")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(category)))
             .andExpect(status().isBadRequest());
 
@@ -173,10 +147,10 @@ public class CategoryResourceIT {
         // Get all the categoryList
         restCategoryMockMvc.perform(get("/api/categories?sort=id,desc"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(category.getId().intValue())))
-            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME.toString())))
-            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION.toString())));
+            .andExpect(jsonPath("$.[*].name").value(hasItem(DEFAULT_NAME)))
+            .andExpect(jsonPath("$.[*].description").value(hasItem(DEFAULT_DESCRIPTION)));
     }
     
     @Test
@@ -188,10 +162,10 @@ public class CategoryResourceIT {
         // Get the category
         restCategoryMockMvc.perform(get("/api/categories/{id}", category.getId()))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(category.getId().intValue()))
-            .andExpect(jsonPath("$.name").value(DEFAULT_NAME.toString()))
-            .andExpect(jsonPath("$.description").value(DEFAULT_DESCRIPTION.toString()));
+            .andExpect(jsonPath("$.name").value(DEFAULT_NAME))
+            .andExpect(jsonPath("$.description").value(DEFAULT_DESCRIPTION));
     }
 
     @Test
@@ -219,7 +193,7 @@ public class CategoryResourceIT {
             .description(UPDATED_DESCRIPTION);
 
         restCategoryMockMvc.perform(put("/api/categories")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(updatedCategory)))
             .andExpect(status().isOk());
 
@@ -240,7 +214,7 @@ public class CategoryResourceIT {
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restCategoryMockMvc.perform(put("/api/categories")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(category)))
             .andExpect(status().isBadRequest());
 
@@ -259,26 +233,11 @@ public class CategoryResourceIT {
 
         // Delete the category
         restCategoryMockMvc.perform(delete("/api/categories/{id}", category.getId())
-            .accept(TestUtil.APPLICATION_JSON_UTF8))
+            .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 
         // Validate the database contains one less item
         List<Category> categoryList = categoryRepository.findAll();
         assertThat(categoryList).hasSize(databaseSizeBeforeDelete - 1);
-    }
-
-    @Test
-    @Transactional
-    public void equalsVerifier() throws Exception {
-        TestUtil.equalsVerifier(Category.class);
-        Category category1 = new Category();
-        category1.setId(1L);
-        Category category2 = new Category();
-        category2.setId(category1.getId());
-        assertThat(category1).isEqualTo(category2);
-        category2.setId(2L);
-        assertThat(category1).isNotEqualTo(category2);
-        category1.setId(null);
-        assertThat(category1).isNotEqualTo(category2);
     }
 }

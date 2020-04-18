@@ -1,23 +1,16 @@
-import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
-import { BookstoreSharedModule } from 'app/shared';
-import {
-  OrderComponent,
-  OrderDetailComponent,
-  OrderUpdateComponent,
-  OrderDeletePopupComponent,
-  OrderDeleteDialogComponent,
-  orderRoute,
-  orderPopupRoute
-} from './';
-
-const ENTITY_STATES = [...orderRoute, ...orderPopupRoute];
+import { BookstoreSharedModule } from 'app/shared/shared.module';
+import { OrderComponent } from './order.component';
+import { OrderDetailComponent } from './order-detail.component';
+import { OrderUpdateComponent } from './order-update.component';
+import { OrderDeleteDialogComponent } from './order-delete-dialog.component';
+import { orderRoute } from './order.route';
 
 @NgModule({
-  imports: [BookstoreSharedModule, RouterModule.forChild(ENTITY_STATES)],
-  declarations: [OrderComponent, OrderDetailComponent, OrderUpdateComponent, OrderDeleteDialogComponent, OrderDeletePopupComponent],
-  entryComponents: [OrderComponent, OrderUpdateComponent, OrderDeleteDialogComponent, OrderDeletePopupComponent],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [BookstoreSharedModule, RouterModule.forChild(orderRoute)],
+  declarations: [OrderComponent, OrderDetailComponent, OrderUpdateComponent, OrderDeleteDialogComponent],
+  entryComponents: [OrderDeleteDialogComponent]
 })
 export class BookstoreOrderModule {}

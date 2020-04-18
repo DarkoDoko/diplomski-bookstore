@@ -1,27 +1,27 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
+import { HttpResponse } from '@angular/common/http';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { JhiAlertService } from 'ng-jhipster';
+
 import { IOrderItem, OrderItem } from 'app/shared/model/order-item.model';
 import { OrderItemService } from './order-item.service';
 import { IBook } from 'app/shared/model/book.model';
-import { BookService } from 'app/entities/book';
+import { BookService } from 'app/entities/book/book.service';
 import { IOrder } from 'app/shared/model/order.model';
-import { OrderService } from 'app/entities/order';
+import { OrderService } from 'app/entities/order/order.service';
+
+type SelectableEntity = IBook | IOrder;
 
 @Component({
   selector: 'jhi-order-item-update',
   templateUrl: './order-item-update.component.html'
 })
 export class OrderItemUpdateComponent implements OnInit {
-  isSaving: boolean;
-
-  books: IBook[];
-
-  orders: IOrder[];
+  isSaving = false;
+  books: IBook[] = [];
+  orders: IOrder[] = [];
 
   editForm = this.fb.group({
     id: [],
@@ -32,7 +32,6 @@ export class OrderItemUpdateComponent implements OnInit {
   });
 
   constructor(
-    protected jhiAlertService: JhiAlertService,
     protected orderItemService: OrderItemService,
     protected bookService: BookService,
     protected orderService: OrderService,
@@ -40,28 +39,17 @@ export class OrderItemUpdateComponent implements OnInit {
     private fb: FormBuilder
   ) {}
 
-  ngOnInit() {
-    this.isSaving = false;
+  ngOnInit(): void {
     this.activatedRoute.data.subscribe(({ orderItem }) => {
       this.updateForm(orderItem);
+
+      this.bookService.query().subscribe((res: HttpResponse<IBook[]>) => (this.books = res.body || []));
+
+      this.orderService.query().subscribe((res: HttpResponse<IOrder[]>) => (this.orders = res.body || []));
     });
-    this.bookService
-      .query()
-      .pipe(
-        filter((mayBeOk: HttpResponse<IBook[]>) => mayBeOk.ok),
-        map((response: HttpResponse<IBook[]>) => response.body)
-      )
-      .subscribe((res: IBook[]) => (this.books = res), (res: HttpErrorResponse) => this.onError(res.message));
-    this.orderService
-      .query()
-      .pipe(
-        filter((mayBeOk: HttpResponse<IOrder[]>) => mayBeOk.ok),
-        map((response: HttpResponse<IOrder[]>) => response.body)
-      )
-      .subscribe((res: IOrder[]) => (this.orders = res), (res: HttpErrorResponse) => this.onError(res.message));
   }
 
-  updateForm(orderItem: IOrderItem) {
+  updateForm(orderItem: IOrderItem): void {
     this.editForm.patchValue({
       id: orderItem.id,
       quantity: orderItem.quantity,
@@ -71,11 +59,11 @@ export class OrderItemUpdateComponent implements OnInit {
     });
   }
 
-  previousState() {
+  previousState(): void {
     window.history.back();
   }
 
-  save() {
+  save(): void {
     this.isSaving = true;
     const orderItem = this.createFromForm();
     if (orderItem.id !== undefined) {
@@ -88,35 +76,31 @@ export class OrderItemUpdateComponent implements OnInit {
   private createFromForm(): IOrderItem {
     return {
       ...new OrderItem(),
-      id: this.editForm.get(['id']).value,
-      quantity: this.editForm.get(['quantity']).value,
-      totalPrice: this.editForm.get(['totalPrice']).value,
-      book: this.editForm.get(['book']).value,
-      order: this.editForm.get(['order']).value
+      id: this.editForm.get(['id'])!.value,
+      quantity: this.editForm.get(['quantity'])!.value,
+      totalPrice: this.editForm.get(['totalPrice'])!.value,
+      book: this.editForm.get(['book'])!.value,
+      order: this.editForm.get(['order'])!.value
     };
   }
 
-  protected subscribeToSaveResponse(result: Observable<HttpResponse<IOrderItem>>) {
-    result.subscribe(() => this.onSaveSuccess(), () => this.onSaveError());
+  protected subscribeToSaveResponse(result: Observable<HttpResponse<IOrderItem>>): void {
+    result.subscribe(
+      () => this.onSaveSuccess(),
+      () => this.onSaveError()
+    );
   }
 
-  protected onSaveSuccess() {
+  protected onSaveSuccess(): void {
     this.isSaving = false;
     this.previousState();
   }
 
-  protected onSaveError() {
+  protected onSaveError(): void {
     this.isSaving = false;
   }
-  protected onError(errorMessage: string) {
-    this.jhiAlertService.error(errorMessage, null, null);
-  }
 
-  trackBookById(index: number, item: IBook) {
-    return item.id;
-  }
-
-  trackOrderById(index: number, item: IOrder) {
+  trackById(index: number, item: SelectableEntity): any {
     return item.id;
   }
 }

@@ -28,10 +28,10 @@ public class PublisherCriteria implements Serializable, Criteria {
 
     private StringFilter name;
 
-    public PublisherCriteria(){
+    public PublisherCriteria() {
     }
 
-    public PublisherCriteria(PublisherCriteria other){
+    public PublisherCriteria(PublisherCriteria other) {
         this.id = other.id == null ? null : other.id.copy();
         this.name = other.name == null ? null : other.name.copy();
     }

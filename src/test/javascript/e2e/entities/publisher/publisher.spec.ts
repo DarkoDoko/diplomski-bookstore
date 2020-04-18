@@ -1,4 +1,3 @@
-/* tslint:disable no-unused-expression */
 import { browser, ExpectedConditions as ec, promise } from 'protractor';
 import { NavBarPage, SignInPage } from '../../page-objects/jhi-page-objects';
 
@@ -9,8 +8,8 @@ const expect = chai.expect;
 describe('Publisher e2e test', () => {
   let navBarPage: NavBarPage;
   let signInPage: SignInPage;
-  let publisherUpdatePage: PublisherUpdatePage;
   let publisherComponentsPage: PublisherComponentsPage;
+  let publisherUpdatePage: PublisherUpdatePage;
   let publisherDeleteDialog: PublisherDeleteDialog;
 
   before(async () => {
@@ -26,6 +25,7 @@ describe('Publisher e2e test', () => {
     publisherComponentsPage = new PublisherComponentsPage();
     await browser.wait(ec.visibilityOf(publisherComponentsPage.title), 5000);
     expect(await publisherComponentsPage.getTitle()).to.eq('Publishers');
+    await browser.wait(ec.or(ec.visibilityOf(publisherComponentsPage.entities), ec.visibilityOf(publisherComponentsPage.noResult)), 1000);
   });
 
   it('should load create Publisher page', async () => {
@@ -39,8 +39,11 @@ describe('Publisher e2e test', () => {
     const nbButtonsBeforeCreate = await publisherComponentsPage.countDeleteButtons();
 
     await publisherComponentsPage.clickOnCreateButton();
+
     await promise.all([publisherUpdatePage.setNameInput('name')]);
+
     expect(await publisherUpdatePage.getNameInput()).to.eq('name', 'Expected Name value to be equals to name');
+
     await publisherUpdatePage.save();
     expect(await publisherUpdatePage.getSaveButton().isPresent(), 'Expected save button disappear').to.be.false;
 

@@ -51,7 +51,6 @@ public class AddressServiceImpl implements AddressService {
         return addressRepository.findAll();
     }
 
-
     /**
      * Get one address by id.
      *

@@ -1,28 +1,31 @@
 <div class="row justify-content-center">
     <div class="col-8">
         <div *ngIf="orderItem">
-            <h2><span>Order Item</span> {{orderItem.id}}</h2>
+            <h2><span>Order Item</span> {{ orderItem.id }}</h2>
+
             <hr>
+
             <jhi-alert-error></jhi-alert-error>
+
             <dl class="row-md jh-entity-details">
                 <dt><span>Quantity</span></dt>
                 <dd>
-                    <span>{{orderItem.quantity}}</span>
+                    <span>{{ orderItem.quantity }}</span>
                 </dd>
                 <dt><span>Total Price</span></dt>
                 <dd>
-                    <span>{{orderItem.totalPrice}}</span>
+                    <span>{{ orderItem.totalPrice }}</span>
                 </dd>
                 <dt><span>Book</span></dt>
                 <dd>
                     <div *ngIf="orderItem.book">
-                        <a [routerLink]="['/book', orderItem.book?.id, 'view']">{{orderItem.book?.title}}</a>
+                        <a [routerLink]="['/book', orderItem.book?.id, 'view']">{{ orderItem.book?.title }}</a>
                     </div>
                 </dd>
                 <dt><span>Order</span></dt>
                 <dd>
                     <div *ngIf="orderItem.order">
-                        <a [routerLink]="['/order', orderItem.order?.id, 'view']">{{orderItem.order?.code}}</a>
+                        <a [routerLink]="['/order', orderItem.order?.id, 'view']">{{ orderItem.order?.code }}</a>
                     </div>
                 </dd>
             </dl>
@@ -30,13 +33,13 @@
             <button type="submit"
                     (click)="previousState()"
                     class="btn btn-info">
-                <fa-icon [icon]="'arrow-left'"></fa-icon>&nbsp;<span> Back</span>
+                <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span>Back</span>
             </button>
 
             <button type="button"
                     [routerLink]="['/order-item', orderItem.id, 'edit']"
                     class="btn btn-primary">
-                <fa-icon [icon]="'pencil-alt'"></fa-icon>&nbsp;<span> Edit</span>
+                <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span>Edit</span>
             </button>
         </div>
     </div>

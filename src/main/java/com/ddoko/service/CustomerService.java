@@ -28,7 +28,6 @@ public interface CustomerService {
      */
     Page<Customer> findAll(Pageable pageable);
 
-
     /**
      * Get the "id" customer.
      *

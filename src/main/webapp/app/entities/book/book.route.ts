@@ -1,27 +1,33 @@
 import { Injectable } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
-import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot, Routes } from '@angular/router';
-import { UserRouteAccessService } from 'app/core';
-import { Observable, of } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { Book } from 'app/shared/model/book.model';
+import { Resolve, ActivatedRouteSnapshot, Routes, Router } from '@angular/router';
+import { Observable, of, EMPTY } from 'rxjs';
+import { flatMap } from 'rxjs/operators';
+
+import { Authority } from 'app/shared/constants/authority.constants';
+import { UserRouteAccessService } from 'app/core/auth/user-route-access-service';
+import { IBook, Book } from 'app/shared/model/book.model';
 import { BookService } from './book.service';
 import { BookComponent } from './book.component';
 import { BookDetailComponent } from './book-detail.component';
 import { BookUpdateComponent } from './book-update.component';
-import { BookDeletePopupComponent } from './book-delete-dialog.component';
-import { IBook } from 'app/shared/model/book.model';
 
 @Injectable({ providedIn: 'root' })
 export class BookResolve implements Resolve<IBook> {
-  constructor(private service: BookService) {}
+  constructor(private service: BookService, private router: Router) {}
 
-  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<IBook> {
+  resolve(route: ActivatedRouteSnapshot): Observable<IBook> | Observable<never> {
     const id = route.params['id'];
     if (id) {
       return this.service.find(id).pipe(
-        filter((response: HttpResponse<Book>) => response.ok),
-        map((book: HttpResponse<Book>) => book.body)
+        flatMap((book: HttpResponse<Book>) => {
+          if (book.body) {
+            return of(book.body);
+          } else {
+            this.router.navigate(['404']);
+            return EMPTY;
+          }
+        })
       );
     }
     return of(new Book());
@@ -33,7 +39,7 @@ export const bookRoute: Routes = [
     path: '',
     component: BookComponent,
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'Books'
     },
     canActivate: [UserRouteAccessService]
@@ -45,7 +51,7 @@ export const bookRoute: Routes = [
       book: BookResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'Books'
     },
     canActivate: [UserRouteAccessService]
@@ -57,7 +63,7 @@ export const bookRoute: Routes = [
       book: BookResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'Books'
     },
     canActivate: [UserRouteAccessService]
@@ -69,25 +75,9 @@ export const bookRoute: Routes = [
       book: BookResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'Books'
     },
     canActivate: [UserRouteAccessService]
-  }
-];
-
-export const bookPopupRoute: Routes = [
-  {
-    path: ':id/delete',
-    component: BookDeletePopupComponent,
-    resolve: {
-      book: BookResolve
-    },
-    data: {
-      authorities: ['ROLE_USER'],
-      pageTitle: 'Books'
-    },
-    canActivate: [UserRouteAccessService],
-    outlet: 'popup'
   }
 ];

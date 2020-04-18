@@ -1,28 +1,34 @@
 import { Injectable } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
-import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot, Routes } from '@angular/router';
-import { JhiPaginationUtil, JhiResolvePagingParams } from 'ng-jhipster';
-import { UserRouteAccessService } from 'app/core';
-import { Observable, of } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { Category } from 'app/shared/model/category.model';
+import { Resolve, ActivatedRouteSnapshot, Routes, Router } from '@angular/router';
+import { JhiResolvePagingParams } from 'ng-jhipster';
+import { Observable, of, EMPTY } from 'rxjs';
+import { flatMap } from 'rxjs/operators';
+
+import { Authority } from 'app/shared/constants/authority.constants';
+import { UserRouteAccessService } from 'app/core/auth/user-route-access-service';
+import { ICategory, Category } from 'app/shared/model/category.model';
 import { CategoryService } from './category.service';
 import { CategoryComponent } from './category.component';
 import { CategoryDetailComponent } from './category-detail.component';
 import { CategoryUpdateComponent } from './category-update.component';
-import { CategoryDeletePopupComponent } from './category-delete-dialog.component';
-import { ICategory } from 'app/shared/model/category.model';
 
 @Injectable({ providedIn: 'root' })
 export class CategoryResolve implements Resolve<ICategory> {
-  constructor(private service: CategoryService) {}
+  constructor(private service: CategoryService, private router: Router) {}
 
-  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<ICategory> {
+  resolve(route: ActivatedRouteSnapshot): Observable<ICategory> | Observable<never> {
     const id = route.params['id'];
     if (id) {
       return this.service.find(id).pipe(
-        filter((response: HttpResponse<Category>) => response.ok),
-        map((category: HttpResponse<Category>) => category.body)
+        flatMap((category: HttpResponse<Category>) => {
+          if (category.body) {
+            return of(category.body);
+          } else {
+            this.router.navigate(['404']);
+            return EMPTY;
+          }
+        })
       );
     }
     return of(new Category());
@@ -37,7 +43,7 @@ export const categoryRoute: Routes = [
       pagingParams: JhiResolvePagingParams
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       defaultSort: 'id,asc',
       pageTitle: 'Categories'
     },
@@ -50,7 +56,7 @@ export const categoryRoute: Routes = [
       category: CategoryResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'Categories'
     },
     canActivate: [UserRouteAccessService]
@@ -62,7 +68,7 @@ export const categoryRoute: Routes = [
       category: CategoryResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'Categories'
     },
     canActivate: [UserRouteAccessService]
@@ -74,25 +80,9 @@ export const categoryRoute: Routes = [
       category: CategoryResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'Categories'
     },
     canActivate: [UserRouteAccessService]
-  }
-];
-
-export const categoryPopupRoute: Routes = [
-  {
-    path: ':id/delete',
-    component: CategoryDeletePopupComponent,
-    resolve: {
-      category: CategoryResolve
-    },
-    data: {
-      authorities: ['ROLE_USER'],
-      pageTitle: 'Categories'
-    },
-    canActivate: [UserRouteAccessService],
-    outlet: 'popup'
   }
 ];

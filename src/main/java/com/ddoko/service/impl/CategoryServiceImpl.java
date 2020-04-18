@@ -53,7 +53,6 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryRepository.findAll(pageable);
     }
 
-
     /**
      * Get one category by id.
      *

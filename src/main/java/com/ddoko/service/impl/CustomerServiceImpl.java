@@ -53,7 +53,6 @@ public class CustomerServiceImpl implements CustomerService {
         return customerRepository.findAll(pageable);
     }
 
-
     /**
      * Get one customer by id.
      *

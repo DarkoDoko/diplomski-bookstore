@@ -1,27 +1,33 @@
 import { Injectable } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
-import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot, Routes } from '@angular/router';
-import { UserRouteAccessService } from 'app/core';
-import { Observable, of } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { OrderItem } from 'app/shared/model/order-item.model';
+import { Resolve, ActivatedRouteSnapshot, Routes, Router } from '@angular/router';
+import { Observable, of, EMPTY } from 'rxjs';
+import { flatMap } from 'rxjs/operators';
+
+import { Authority } from 'app/shared/constants/authority.constants';
+import { UserRouteAccessService } from 'app/core/auth/user-route-access-service';
+import { IOrderItem, OrderItem } from 'app/shared/model/order-item.model';
 import { OrderItemService } from './order-item.service';
 import { OrderItemComponent } from './order-item.component';
 import { OrderItemDetailComponent } from './order-item-detail.component';
 import { OrderItemUpdateComponent } from './order-item-update.component';
-import { OrderItemDeletePopupComponent } from './order-item-delete-dialog.component';
-import { IOrderItem } from 'app/shared/model/order-item.model';
 
 @Injectable({ providedIn: 'root' })
 export class OrderItemResolve implements Resolve<IOrderItem> {
-  constructor(private service: OrderItemService) {}
+  constructor(private service: OrderItemService, private router: Router) {}
 
-  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<IOrderItem> {
+  resolve(route: ActivatedRouteSnapshot): Observable<IOrderItem> | Observable<never> {
     const id = route.params['id'];
     if (id) {
       return this.service.find(id).pipe(
-        filter((response: HttpResponse<OrderItem>) => response.ok),
-        map((orderItem: HttpResponse<OrderItem>) => orderItem.body)
+        flatMap((orderItem: HttpResponse<OrderItem>) => {
+          if (orderItem.body) {
+            return of(orderItem.body);
+          } else {
+            this.router.navigate(['404']);
+            return EMPTY;
+          }
+        })
       );
     }
     return of(new OrderItem());
@@ -33,7 +39,7 @@ export const orderItemRoute: Routes = [
     path: '',
     component: OrderItemComponent,
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'OrderItems'
     },
     canActivate: [UserRouteAccessService]
@@ -45,7 +51,7 @@ export const orderItemRoute: Routes = [
       orderItem: OrderItemResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'OrderItems'
     },
     canActivate: [UserRouteAccessService]
@@ -57,7 +63,7 @@ export const orderItemRoute: Routes = [
       orderItem: OrderItemResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'OrderItems'
     },
     canActivate: [UserRouteAccessService]
@@ -69,25 +75,9 @@ export const orderItemRoute: Routes = [
       orderItem: OrderItemResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'OrderItems'
     },
     canActivate: [UserRouteAccessService]
-  }
-];
-
-export const orderItemPopupRoute: Routes = [
-  {
-    path: ':id/delete',
-    component: OrderItemDeletePopupComponent,
-    resolve: {
-      orderItem: OrderItemResolve
-    },
-    data: {
-      authorities: ['ROLE_USER'],
-      pageTitle: 'OrderItems'
-    },
-    canActivate: [UserRouteAccessService],
-    outlet: 'popup'
   }
 ];

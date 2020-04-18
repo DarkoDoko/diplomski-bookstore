@@ -1,65 +1,49 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
+import { HttpResponse } from '@angular/common/http';
 import { Subscription } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { JhiEventManager, JhiAlertService } from 'ng-jhipster';
+import { JhiEventManager } from 'ng-jhipster';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { IPublisher } from 'app/shared/model/publisher.model';
-import { AccountService } from 'app/core';
 import { PublisherService } from './publisher.service';
+import { PublisherDeleteDialogComponent } from './publisher-delete-dialog.component';
 
 @Component({
   selector: 'jhi-publisher',
   templateUrl: './publisher.component.html'
 })
 export class PublisherComponent implements OnInit, OnDestroy {
-  publishers: IPublisher[];
-  currentAccount: any;
-  eventSubscriber: Subscription;
+  publishers?: IPublisher[];
+  eventSubscriber?: Subscription;
 
-  constructor(
-    protected publisherService: PublisherService,
-    protected jhiAlertService: JhiAlertService,
-    protected eventManager: JhiEventManager,
-    protected accountService: AccountService
-  ) {}
+  constructor(protected publisherService: PublisherService, protected eventManager: JhiEventManager, protected modalService: NgbModal) {}
 
-  loadAll() {
-    this.publisherService
-      .query()
-      .pipe(
-        filter((res: HttpResponse<IPublisher[]>) => res.ok),
-        map((res: HttpResponse<IPublisher[]>) => res.body)
-      )
-      .subscribe(
-        (res: IPublisher[]) => {
-          this.publishers = res;
-        },
-        (res: HttpErrorResponse) => this.onError(res.message)
-      );
+  loadAll(): void {
+    this.publisherService.query().subscribe((res: HttpResponse<IPublisher[]>) => (this.publishers = res.body || []));
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadAll();
-    this.accountService.identity().then(account => {
-      this.currentAccount = account;
-    });
     this.registerChangeInPublishers();
   }
 
-  ngOnDestroy() {
-    this.eventManager.destroy(this.eventSubscriber);
+  ngOnDestroy(): void {
+    if (this.eventSubscriber) {
+      this.eventManager.destroy(this.eventSubscriber);
+    }
   }
 
-  trackId(index: number, item: IPublisher) {
-    return item.id;
+  trackId(index: number, item: IPublisher): number {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    return item.id!;
   }
 
-  registerChangeInPublishers() {
-    this.eventSubscriber = this.eventManager.subscribe('publisherListModification', response => this.loadAll());
+  registerChangeInPublishers(): void {
+    this.eventSubscriber = this.eventManager.subscribe('publisherListModification', () => this.loadAll());
   }
 
-  protected onError(errorMessage: string) {
-    this.jhiAlertService.error(errorMessage, null, null);
+  delete(publisher: IPublisher): void {
+    const modalRef = this.modalService.open(PublisherDeleteDialogComponent, { size: 'lg', backdrop: 'static' });
+    modalRef.componentInstance.publisher = publisher;
   }
 }

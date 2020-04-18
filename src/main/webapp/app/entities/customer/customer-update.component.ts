@@ -1,55 +1,48 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
+import { HttpResponse } from '@angular/common/http';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { JhiAlertService } from 'ng-jhipster';
+
 import { ICustomer, Customer } from 'app/shared/model/customer.model';
 import { CustomerService } from './customer.service';
-import { IUser, UserService } from 'app/core';
+import { IUser } from 'app/core/user/user.model';
+import { UserService } from 'app/core/user/user.service';
 
 @Component({
   selector: 'jhi-customer-update',
   templateUrl: './customer-update.component.html'
 })
 export class CustomerUpdateComponent implements OnInit {
-  isSaving: boolean;
-
-  users: IUser[];
+  isSaving = false;
+  users: IUser[] = [];
 
   editForm = this.fb.group({
     id: [],
     firstName: [null, [Validators.required]],
     lastName: [null, [Validators.required]],
-    email: [null, [Validators.required, Validators.pattern('^[^@s]+@[^@s]+.[^@s]+$')]],
+    email: [null, [Validators.required, Validators.pattern('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')]],
     telephone: [],
     user: [null, Validators.required]
   });
 
   constructor(
-    protected jhiAlertService: JhiAlertService,
     protected customerService: CustomerService,
     protected userService: UserService,
     protected activatedRoute: ActivatedRoute,
     private fb: FormBuilder
   ) {}
 
-  ngOnInit() {
-    this.isSaving = false;
+  ngOnInit(): void {
     this.activatedRoute.data.subscribe(({ customer }) => {
       this.updateForm(customer);
+
+      this.userService.query().subscribe((res: HttpResponse<IUser[]>) => (this.users = res.body || []));
     });
-    this.userService
-      .query()
-      .pipe(
-        filter((mayBeOk: HttpResponse<IUser[]>) => mayBeOk.ok),
-        map((response: HttpResponse<IUser[]>) => response.body)
-      )
-      .subscribe((res: IUser[]) => (this.users = res), (res: HttpErrorResponse) => this.onError(res.message));
   }
 
-  updateForm(customer: ICustomer) {
+  updateForm(customer: ICustomer): void {
     this.editForm.patchValue({
       id: customer.id,
       firstName: customer.firstName,
@@ -60,11 +53,11 @@ export class CustomerUpdateComponent implements OnInit {
     });
   }
 
-  previousState() {
+  previousState(): void {
     window.history.back();
   }
 
-  save() {
+  save(): void {
     this.isSaving = true;
     const customer = this.createFromForm();
     if (customer.id !== undefined) {
@@ -77,32 +70,32 @@ export class CustomerUpdateComponent implements OnInit {
   private createFromForm(): ICustomer {
     return {
       ...new Customer(),
-      id: this.editForm.get(['id']).value,
-      firstName: this.editForm.get(['firstName']).value,
-      lastName: this.editForm.get(['lastName']).value,
-      email: this.editForm.get(['email']).value,
-      telephone: this.editForm.get(['telephone']).value,
-      user: this.editForm.get(['user']).value
+      id: this.editForm.get(['id'])!.value,
+      firstName: this.editForm.get(['firstName'])!.value,
+      lastName: this.editForm.get(['lastName'])!.value,
+      email: this.editForm.get(['email'])!.value,
+      telephone: this.editForm.get(['telephone'])!.value,
+      user: this.editForm.get(['user'])!.value
     };
   }
 
-  protected subscribeToSaveResponse(result: Observable<HttpResponse<ICustomer>>) {
-    result.subscribe(() => this.onSaveSuccess(), () => this.onSaveError());
+  protected subscribeToSaveResponse(result: Observable<HttpResponse<ICustomer>>): void {
+    result.subscribe(
+      () => this.onSaveSuccess(),
+      () => this.onSaveError()
+    );
   }
 
-  protected onSaveSuccess() {
+  protected onSaveSuccess(): void {
     this.isSaving = false;
     this.previousState();
   }
 
-  protected onSaveError() {
+  protected onSaveError(): void {
     this.isSaving = false;
   }
-  protected onError(errorMessage: string) {
-    this.jhiAlertService.error(errorMessage, null, null);
-  }
 
-  trackUserById(index: number, item: IUser) {
+  trackById(index: number, item: IUser): any {
     return item.id;
   }
 }

@@ -53,7 +53,6 @@ public class AuthorServiceImpl implements AuthorService {
         return authorRepository.findAll(pageable);
     }
 
-
     /**
      * Get one author by id.
      *

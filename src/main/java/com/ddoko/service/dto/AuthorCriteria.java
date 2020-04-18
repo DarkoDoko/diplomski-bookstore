@@ -32,10 +32,10 @@ public class AuthorCriteria implements Serializable, Criteria {
 
     private LongFilter bookId;
 
-    public AuthorCriteria(){
+    public AuthorCriteria() {
     }
 
-    public AuthorCriteria(AuthorCriteria other){
+    public AuthorCriteria(AuthorCriteria other) {
         this.id = other.id == null ? null : other.id.copy();
         this.firstName = other.firstName == null ? null : other.firstName.copy();
         this.lastName = other.lastName == null ? null : other.lastName.copy();
