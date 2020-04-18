@@ -1,31 +1,31 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
+import { HttpResponse } from '@angular/common/http';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { JhiAlertService } from 'ng-jhipster';
+import { map } from 'rxjs/operators';
+
 import { IBook, Book } from 'app/shared/model/book.model';
 import { BookService } from './book.service';
 import { IPublisher } from 'app/shared/model/publisher.model';
-import { PublisherService } from 'app/entities/publisher';
+import { PublisherService } from 'app/entities/publisher/publisher.service';
 import { IAuthor } from 'app/shared/model/author.model';
-import { AuthorService } from 'app/entities/author';
+import { AuthorService } from 'app/entities/author/author.service';
 import { ICategory } from 'app/shared/model/category.model';
-import { CategoryService } from 'app/entities/category';
+import { CategoryService } from 'app/entities/category/category.service';
+
+type SelectableEntity = IPublisher | IAuthor | ICategory;
 
 @Component({
   selector: 'jhi-book-update',
   templateUrl: './book-update.component.html'
 })
 export class BookUpdateComponent implements OnInit {
-  isSaving: boolean;
-
-  publishers: IPublisher[];
-
-  authors: IAuthor[];
-
-  categories: ICategory[];
+  isSaving = false;
+  publishers: IPublisher[] = [];
+  authors: IAuthor[] = [];
+  categories: ICategory[] = [];
 
   editForm = this.fb.group({
     id: [],
@@ -41,7 +41,6 @@ export class BookUpdateComponent implements OnInit {
   });
 
   constructor(
-    protected jhiAlertService: JhiAlertService,
     protected bookService: BookService,
     protected publisherService: PublisherService,
     protected authorService: AuthorService,
@@ -50,53 +49,39 @@ export class BookUpdateComponent implements OnInit {
     private fb: FormBuilder
   ) {}
 
-  ngOnInit() {
-    this.isSaving = false;
+  ngOnInit(): void {
     this.activatedRoute.data.subscribe(({ book }) => {
       this.updateForm(book);
-    });
-    this.publisherService
-      .query({ 'bookId.specified': 'false' })
-      .pipe(
-        filter((mayBeOk: HttpResponse<IPublisher[]>) => mayBeOk.ok),
-        map((response: HttpResponse<IPublisher[]>) => response.body)
-      )
-      .subscribe(
-        (res: IPublisher[]) => {
-          if (!this.editForm.get('publisher').value || !this.editForm.get('publisher').value.id) {
-            this.publishers = res;
+
+      this.publisherService
+        .query({ 'bookId.specified': 'false' })
+        .pipe(
+          map((res: HttpResponse<IPublisher[]>) => {
+            return res.body || [];
+          })
+        )
+        .subscribe((resBody: IPublisher[]) => {
+          if (!book.publisher || !book.publisher.id) {
+            this.publishers = resBody;
           } else {
             this.publisherService
-              .find(this.editForm.get('publisher').value.id)
+              .find(book.publisher.id)
               .pipe(
-                filter((subResMayBeOk: HttpResponse<IPublisher>) => subResMayBeOk.ok),
-                map((subResponse: HttpResponse<IPublisher>) => subResponse.body)
+                map((subRes: HttpResponse<IPublisher>) => {
+                  return subRes.body ? [subRes.body].concat(resBody) : resBody;
+                })
               )
-              .subscribe(
-                (subRes: IPublisher) => (this.publishers = [subRes].concat(res)),
-                (subRes: HttpErrorResponse) => this.onError(subRes.message)
-              );
+              .subscribe((concatRes: IPublisher[]) => (this.publishers = concatRes));
           }
-        },
-        (res: HttpErrorResponse) => this.onError(res.message)
-      );
-    this.authorService
-      .query()
-      .pipe(
-        filter((mayBeOk: HttpResponse<IAuthor[]>) => mayBeOk.ok),
-        map((response: HttpResponse<IAuthor[]>) => response.body)
-      )
-      .subscribe((res: IAuthor[]) => (this.authors = res), (res: HttpErrorResponse) => this.onError(res.message));
-    this.categoryService
-      .query()
-      .pipe(
-        filter((mayBeOk: HttpResponse<ICategory[]>) => mayBeOk.ok),
-        map((response: HttpResponse<ICategory[]>) => response.body)
-      )
-      .subscribe((res: ICategory[]) => (this.categories = res), (res: HttpErrorResponse) => this.onError(res.message));
+        });
+
+      this.authorService.query().subscribe((res: HttpResponse<IAuthor[]>) => (this.authors = res.body || []));
+
+      this.categoryService.query().subscribe((res: HttpResponse<ICategory[]>) => (this.categories = res.body || []));
+    });
   }
 
-  updateForm(book: IBook) {
+  updateForm(book: IBook): void {
     this.editForm.patchValue({
       id: book.id,
       iSBN: book.iSBN,
@@ -111,11 +96,11 @@ export class BookUpdateComponent implements OnInit {
     });
   }
 
-  previousState() {
+  previousState(): void {
     window.history.back();
   }
 
-  save() {
+  save(): void {
     this.isSaving = true;
     const book = this.createFromForm();
     if (book.id !== undefined) {
@@ -128,48 +113,40 @@ export class BookUpdateComponent implements OnInit {
   private createFromForm(): IBook {
     return {
       ...new Book(),
-      id: this.editForm.get(['id']).value,
-      iSBN: this.editForm.get(['iSBN']).value,
-      title: this.editForm.get(['title']).value,
-      price: this.editForm.get(['price']).value,
-      numberOfPages: this.editForm.get(['numberOfPages']).value,
-      publishYear: this.editForm.get(['publishYear']).value,
-      coverUrl: this.editForm.get(['coverUrl']).value,
-      publisher: this.editForm.get(['publisher']).value,
-      authors: this.editForm.get(['authors']).value,
-      category: this.editForm.get(['category']).value
+      id: this.editForm.get(['id'])!.value,
+      iSBN: this.editForm.get(['iSBN'])!.value,
+      title: this.editForm.get(['title'])!.value,
+      price: this.editForm.get(['price'])!.value,
+      numberOfPages: this.editForm.get(['numberOfPages'])!.value,
+      publishYear: this.editForm.get(['publishYear'])!.value,
+      coverUrl: this.editForm.get(['coverUrl'])!.value,
+      publisher: this.editForm.get(['publisher'])!.value,
+      authors: this.editForm.get(['authors'])!.value,
+      category: this.editForm.get(['category'])!.value
     };
   }
 
-  protected subscribeToSaveResponse(result: Observable<HttpResponse<IBook>>) {
-    result.subscribe(() => this.onSaveSuccess(), () => this.onSaveError());
+  protected subscribeToSaveResponse(result: Observable<HttpResponse<IBook>>): void {
+    result.subscribe(
+      () => this.onSaveSuccess(),
+      () => this.onSaveError()
+    );
   }
 
-  protected onSaveSuccess() {
+  protected onSaveSuccess(): void {
     this.isSaving = false;
     this.previousState();
   }
 
-  protected onSaveError() {
+  protected onSaveError(): void {
     this.isSaving = false;
   }
-  protected onError(errorMessage: string) {
-    this.jhiAlertService.error(errorMessage, null, null);
-  }
 
-  trackPublisherById(index: number, item: IPublisher) {
+  trackById(index: number, item: SelectableEntity): any {
     return item.id;
   }
 
-  trackAuthorById(index: number, item: IAuthor) {
-    return item.id;
-  }
-
-  trackCategoryById(index: number, item: ICategory) {
-    return item.id;
-  }
-
-  getSelected(selectedVals: Array<any>, option: any) {
+  getSelected(selectedVals: IAuthor[], option: IAuthor): IAuthor {
     if (selectedVals) {
       for (let i = 0; i < selectedVals.length; i++) {
         if (option.id === selectedVals[i].id) {

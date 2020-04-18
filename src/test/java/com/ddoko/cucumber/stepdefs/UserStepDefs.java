@@ -1,8 +1,8 @@
 package com.ddoko.cucumber.stepdefs;
 
-import cucumber.api.java.Before;
-import cucumber.api.java.en.Then;
-import cucumber.api.java.en.When;
+import io.cucumber.java.Before;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -36,7 +36,7 @@ public class UserStepDefs extends StepDefs {
     public void the_user_is_found() throws Throwable {
         actions
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE));
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE));
     }
 
     @Then("his last name is {string}")

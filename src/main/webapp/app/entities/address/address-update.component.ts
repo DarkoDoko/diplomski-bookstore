@@ -1,23 +1,22 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
+import { HttpResponse } from '@angular/common/http';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { JhiAlertService } from 'ng-jhipster';
+
 import { IAddress, Address } from 'app/shared/model/address.model';
 import { AddressService } from './address.service';
 import { ICustomer } from 'app/shared/model/customer.model';
-import { CustomerService } from 'app/entities/customer';
+import { CustomerService } from 'app/entities/customer/customer.service';
 
 @Component({
   selector: 'jhi-address-update',
   templateUrl: './address-update.component.html'
 })
 export class AddressUpdateComponent implements OnInit {
-  isSaving: boolean;
-
-  customers: ICustomer[];
+  isSaving = false;
+  customers: ICustomer[] = [];
 
   editForm = this.fb.group({
     id: [],
@@ -30,28 +29,21 @@ export class AddressUpdateComponent implements OnInit {
   });
 
   constructor(
-    protected jhiAlertService: JhiAlertService,
     protected addressService: AddressService,
     protected customerService: CustomerService,
     protected activatedRoute: ActivatedRoute,
     private fb: FormBuilder
   ) {}
 
-  ngOnInit() {
-    this.isSaving = false;
+  ngOnInit(): void {
     this.activatedRoute.data.subscribe(({ address }) => {
       this.updateForm(address);
+
+      this.customerService.query().subscribe((res: HttpResponse<ICustomer[]>) => (this.customers = res.body || []));
     });
-    this.customerService
-      .query()
-      .pipe(
-        filter((mayBeOk: HttpResponse<ICustomer[]>) => mayBeOk.ok),
-        map((response: HttpResponse<ICustomer[]>) => response.body)
-      )
-      .subscribe((res: ICustomer[]) => (this.customers = res), (res: HttpErrorResponse) => this.onError(res.message));
   }
 
-  updateForm(address: IAddress) {
+  updateForm(address: IAddress): void {
     this.editForm.patchValue({
       id: address.id,
       address1: address.address1,
@@ -63,11 +55,11 @@ export class AddressUpdateComponent implements OnInit {
     });
   }
 
-  previousState() {
+  previousState(): void {
     window.history.back();
   }
 
-  save() {
+  save(): void {
     this.isSaving = true;
     const address = this.createFromForm();
     if (address.id !== undefined) {
@@ -80,33 +72,33 @@ export class AddressUpdateComponent implements OnInit {
   private createFromForm(): IAddress {
     return {
       ...new Address(),
-      id: this.editForm.get(['id']).value,
-      address1: this.editForm.get(['address1']).value,
-      address2: this.editForm.get(['address2']).value,
-      city: this.editForm.get(['city']).value,
-      postcode: this.editForm.get(['postcode']).value,
-      country: this.editForm.get(['country']).value,
-      customer: this.editForm.get(['customer']).value
+      id: this.editForm.get(['id'])!.value,
+      address1: this.editForm.get(['address1'])!.value,
+      address2: this.editForm.get(['address2'])!.value,
+      city: this.editForm.get(['city'])!.value,
+      postcode: this.editForm.get(['postcode'])!.value,
+      country: this.editForm.get(['country'])!.value,
+      customer: this.editForm.get(['customer'])!.value
     };
   }
 
-  protected subscribeToSaveResponse(result: Observable<HttpResponse<IAddress>>) {
-    result.subscribe(() => this.onSaveSuccess(), () => this.onSaveError());
+  protected subscribeToSaveResponse(result: Observable<HttpResponse<IAddress>>): void {
+    result.subscribe(
+      () => this.onSaveSuccess(),
+      () => this.onSaveError()
+    );
   }
 
-  protected onSaveSuccess() {
+  protected onSaveSuccess(): void {
     this.isSaving = false;
     this.previousState();
   }
 
-  protected onSaveError() {
+  protected onSaveError(): void {
     this.isSaving = false;
   }
-  protected onError(errorMessage: string) {
-    this.jhiAlertService.error(errorMessage, null, null);
-  }
 
-  trackCustomerById(index: number, item: ICustomer) {
+  trackById(index: number, item: ICustomer): any {
     return item.id;
   }
 }

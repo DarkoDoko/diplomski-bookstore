@@ -8,17 +8,15 @@ import { IAuthor } from 'app/shared/model/author.model';
   templateUrl: './author-detail.component.html'
 })
 export class AuthorDetailComponent implements OnInit {
-  author: IAuthor;
+  author: IAuthor | null = null;
 
   constructor(protected activatedRoute: ActivatedRoute) {}
 
-  ngOnInit() {
-    this.activatedRoute.data.subscribe(({ author }) => {
-      this.author = author;
-    });
+  ngOnInit(): void {
+    this.activatedRoute.data.subscribe(({ author }) => (this.author = author));
   }
 
-  previousState() {
+  previousState(): void {
     window.history.back();
   }
 }

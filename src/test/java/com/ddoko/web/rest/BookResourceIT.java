@@ -7,32 +7,28 @@ import com.ddoko.domain.Author;
 import com.ddoko.domain.Category;
 import com.ddoko.repository.BookRepository;
 import com.ddoko.service.BookService;
-import com.ddoko.web.rest.errors.ExceptionTranslator;
 import com.ddoko.service.dto.BookCriteria;
 import com.ddoko.service.BookQueryService;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.Validator;
-
 import javax.persistence.EntityManager;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.ddoko.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.mockito.Mockito.*;
@@ -43,6 +39,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Integration tests for the {@link BookResource} REST controller.
  */
 @SpringBootTest(classes = BookstoreApp.class)
+@ExtendWith(MockitoExtension.class)
+@AutoConfigureMockMvc
+@WithMockUser
 public class BookResourceIT {
 
     private static final String DEFAULT_I_SBN = "AAAAAAAAAA";
@@ -81,35 +80,12 @@ public class BookResourceIT {
     private BookQueryService bookQueryService;
 
     @Autowired
-    private MappingJackson2HttpMessageConverter jacksonMessageConverter;
-
-    @Autowired
-    private PageableHandlerMethodArgumentResolver pageableArgumentResolver;
-
-    @Autowired
-    private ExceptionTranslator exceptionTranslator;
-
-    @Autowired
     private EntityManager em;
 
     @Autowired
-    private Validator validator;
-
     private MockMvc restBookMockMvc;
 
     private Book book;
-
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.initMocks(this);
-        final BookResource bookResource = new BookResource(bookService, bookQueryService);
-        this.restBookMockMvc = MockMvcBuilders.standaloneSetup(bookResource)
-            .setCustomArgumentResolvers(pageableArgumentResolver)
-            .setControllerAdvice(exceptionTranslator)
-            .setConversionService(createFormattingConversionService())
-            .setMessageConverters(jacksonMessageConverter)
-            .setValidator(validator).build();
-    }
 
     /**
      * Create an entity for this test.
@@ -156,7 +132,7 @@ public class BookResourceIT {
 
         // Create the Book
         restBookMockMvc.perform(post("/api/books")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(book)))
             .andExpect(status().isCreated());
 
@@ -182,7 +158,7 @@ public class BookResourceIT {
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restBookMockMvc.perform(post("/api/books")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(book)))
             .andExpect(status().isBadRequest());
 
@@ -202,7 +178,7 @@ public class BookResourceIT {
         // Create the Book, which fails.
 
         restBookMockMvc.perform(post("/api/books")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(book)))
             .andExpect(status().isBadRequest());
 
@@ -220,7 +196,7 @@ public class BookResourceIT {
         // Create the Book, which fails.
 
         restBookMockMvc.perform(post("/api/books")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(book)))
             .andExpect(status().isBadRequest());
 
@@ -238,7 +214,7 @@ public class BookResourceIT {
         // Create the Book, which fails.
 
         restBookMockMvc.perform(post("/api/books")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(book)))
             .andExpect(status().isBadRequest());
 
@@ -256,7 +232,7 @@ public class BookResourceIT {
         // Create the Book, which fails.
 
         restBookMockMvc.perform(post("/api/books")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(book)))
             .andExpect(status().isBadRequest());
 
@@ -273,47 +249,34 @@ public class BookResourceIT {
         // Get all the bookList
         restBookMockMvc.perform(get("/api/books?sort=id,desc"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(book.getId().intValue())))
-            .andExpect(jsonPath("$.[*].iSBN").value(hasItem(DEFAULT_I_SBN.toString())))
-            .andExpect(jsonPath("$.[*].title").value(hasItem(DEFAULT_TITLE.toString())))
+            .andExpect(jsonPath("$.[*].iSBN").value(hasItem(DEFAULT_I_SBN)))
+            .andExpect(jsonPath("$.[*].title").value(hasItem(DEFAULT_TITLE)))
             .andExpect(jsonPath("$.[*].price").value(hasItem(DEFAULT_PRICE.intValue())))
             .andExpect(jsonPath("$.[*].numberOfPages").value(hasItem(DEFAULT_NUMBER_OF_PAGES)))
-            .andExpect(jsonPath("$.[*].publishYear").value(hasItem(DEFAULT_PUBLISH_YEAR.toString())))
-            .andExpect(jsonPath("$.[*].coverUrl").value(hasItem(DEFAULT_COVER_URL.toString())));
+            .andExpect(jsonPath("$.[*].publishYear").value(hasItem(DEFAULT_PUBLISH_YEAR)))
+            .andExpect(jsonPath("$.[*].coverUrl").value(hasItem(DEFAULT_COVER_URL)));
     }
     
     @SuppressWarnings({"unchecked"})
     public void getAllBooksWithEagerRelationshipsIsEnabled() throws Exception {
-        BookResource bookResource = new BookResource(bookServiceMock, bookQueryService);
         when(bookServiceMock.findAllWithEagerRelationships(any())).thenReturn(new PageImpl(new ArrayList<>()));
 
-        MockMvc restBookMockMvc = MockMvcBuilders.standaloneSetup(bookResource)
-            .setCustomArgumentResolvers(pageableArgumentResolver)
-            .setControllerAdvice(exceptionTranslator)
-            .setConversionService(createFormattingConversionService())
-            .setMessageConverters(jacksonMessageConverter).build();
-
         restBookMockMvc.perform(get("/api/books?eagerload=true"))
-        .andExpect(status().isOk());
+            .andExpect(status().isOk());
 
         verify(bookServiceMock, times(1)).findAllWithEagerRelationships(any());
     }
 
     @SuppressWarnings({"unchecked"})
     public void getAllBooksWithEagerRelationshipsIsNotEnabled() throws Exception {
-        BookResource bookResource = new BookResource(bookServiceMock, bookQueryService);
-            when(bookServiceMock.findAllWithEagerRelationships(any())).thenReturn(new PageImpl(new ArrayList<>()));
-            MockMvc restBookMockMvc = MockMvcBuilders.standaloneSetup(bookResource)
-            .setCustomArgumentResolvers(pageableArgumentResolver)
-            .setControllerAdvice(exceptionTranslator)
-            .setConversionService(createFormattingConversionService())
-            .setMessageConverters(jacksonMessageConverter).build();
+        when(bookServiceMock.findAllWithEagerRelationships(any())).thenReturn(new PageImpl(new ArrayList<>()));
 
         restBookMockMvc.perform(get("/api/books?eagerload=true"))
-        .andExpect(status().isOk());
+            .andExpect(status().isOk());
 
-            verify(bookServiceMock, times(1)).findAllWithEagerRelationships(any());
+        verify(bookServiceMock, times(1)).findAllWithEagerRelationships(any());
     }
 
     @Test
@@ -325,15 +288,35 @@ public class BookResourceIT {
         // Get the book
         restBookMockMvc.perform(get("/api/books/{id}", book.getId()))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(book.getId().intValue()))
-            .andExpect(jsonPath("$.iSBN").value(DEFAULT_I_SBN.toString()))
-            .andExpect(jsonPath("$.title").value(DEFAULT_TITLE.toString()))
+            .andExpect(jsonPath("$.iSBN").value(DEFAULT_I_SBN))
+            .andExpect(jsonPath("$.title").value(DEFAULT_TITLE))
             .andExpect(jsonPath("$.price").value(DEFAULT_PRICE.intValue()))
             .andExpect(jsonPath("$.numberOfPages").value(DEFAULT_NUMBER_OF_PAGES))
-            .andExpect(jsonPath("$.publishYear").value(DEFAULT_PUBLISH_YEAR.toString()))
-            .andExpect(jsonPath("$.coverUrl").value(DEFAULT_COVER_URL.toString()));
+            .andExpect(jsonPath("$.publishYear").value(DEFAULT_PUBLISH_YEAR))
+            .andExpect(jsonPath("$.coverUrl").value(DEFAULT_COVER_URL));
     }
+
+
+    @Test
+    @Transactional
+    public void getBooksByIdFiltering() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        Long id = book.getId();
+
+        defaultBookShouldBeFound("id.equals=" + id);
+        defaultBookShouldNotBeFound("id.notEquals=" + id);
+
+        defaultBookShouldBeFound("id.greaterThanOrEqual=" + id);
+        defaultBookShouldNotBeFound("id.greaterThan=" + id);
+
+        defaultBookShouldBeFound("id.lessThanOrEqual=" + id);
+        defaultBookShouldNotBeFound("id.lessThan=" + id);
+    }
+
 
     @Test
     @Transactional
@@ -346,6 +329,19 @@ public class BookResourceIT {
 
         // Get all the bookList where iSBN equals to UPDATED_I_SBN
         defaultBookShouldNotBeFound("iSBN.equals=" + UPDATED_I_SBN);
+    }
+
+    @Test
+    @Transactional
+    public void getAllBooksByiSBNIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where iSBN not equals to DEFAULT_I_SBN
+        defaultBookShouldNotBeFound("iSBN.notEquals=" + DEFAULT_I_SBN);
+
+        // Get all the bookList where iSBN not equals to UPDATED_I_SBN
+        defaultBookShouldBeFound("iSBN.notEquals=" + UPDATED_I_SBN);
     }
 
     @Test
@@ -373,6 +369,32 @@ public class BookResourceIT {
         // Get all the bookList where iSBN is null
         defaultBookShouldNotBeFound("iSBN.specified=false");
     }
+                @Test
+    @Transactional
+    public void getAllBooksByiSBNContainsSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where iSBN contains DEFAULT_I_SBN
+        defaultBookShouldBeFound("iSBN.contains=" + DEFAULT_I_SBN);
+
+        // Get all the bookList where iSBN contains UPDATED_I_SBN
+        defaultBookShouldNotBeFound("iSBN.contains=" + UPDATED_I_SBN);
+    }
+
+    @Test
+    @Transactional
+    public void getAllBooksByiSBNNotContainsSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where iSBN does not contain DEFAULT_I_SBN
+        defaultBookShouldNotBeFound("iSBN.doesNotContain=" + DEFAULT_I_SBN);
+
+        // Get all the bookList where iSBN does not contain UPDATED_I_SBN
+        defaultBookShouldBeFound("iSBN.doesNotContain=" + UPDATED_I_SBN);
+    }
+
 
     @Test
     @Transactional
@@ -385,6 +407,19 @@ public class BookResourceIT {
 
         // Get all the bookList where title equals to UPDATED_TITLE
         defaultBookShouldNotBeFound("title.equals=" + UPDATED_TITLE);
+    }
+
+    @Test
+    @Transactional
+    public void getAllBooksByTitleIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where title not equals to DEFAULT_TITLE
+        defaultBookShouldNotBeFound("title.notEquals=" + DEFAULT_TITLE);
+
+        // Get all the bookList where title not equals to UPDATED_TITLE
+        defaultBookShouldBeFound("title.notEquals=" + UPDATED_TITLE);
     }
 
     @Test
@@ -412,6 +447,32 @@ public class BookResourceIT {
         // Get all the bookList where title is null
         defaultBookShouldNotBeFound("title.specified=false");
     }
+                @Test
+    @Transactional
+    public void getAllBooksByTitleContainsSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where title contains DEFAULT_TITLE
+        defaultBookShouldBeFound("title.contains=" + DEFAULT_TITLE);
+
+        // Get all the bookList where title contains UPDATED_TITLE
+        defaultBookShouldNotBeFound("title.contains=" + UPDATED_TITLE);
+    }
+
+    @Test
+    @Transactional
+    public void getAllBooksByTitleNotContainsSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where title does not contain DEFAULT_TITLE
+        defaultBookShouldNotBeFound("title.doesNotContain=" + DEFAULT_TITLE);
+
+        // Get all the bookList where title does not contain UPDATED_TITLE
+        defaultBookShouldBeFound("title.doesNotContain=" + UPDATED_TITLE);
+    }
+
 
     @Test
     @Transactional
@@ -424,6 +485,19 @@ public class BookResourceIT {
 
         // Get all the bookList where price equals to UPDATED_PRICE
         defaultBookShouldNotBeFound("price.equals=" + UPDATED_PRICE);
+    }
+
+    @Test
+    @Transactional
+    public void getAllBooksByPriceIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where price not equals to DEFAULT_PRICE
+        defaultBookShouldNotBeFound("price.notEquals=" + DEFAULT_PRICE);
+
+        // Get all the bookList where price not equals to UPDATED_PRICE
+        defaultBookShouldBeFound("price.notEquals=" + UPDATED_PRICE);
     }
 
     @Test
@@ -520,6 +594,19 @@ public class BookResourceIT {
 
     @Test
     @Transactional
+    public void getAllBooksByNumberOfPagesIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where numberOfPages not equals to DEFAULT_NUMBER_OF_PAGES
+        defaultBookShouldNotBeFound("numberOfPages.notEquals=" + DEFAULT_NUMBER_OF_PAGES);
+
+        // Get all the bookList where numberOfPages not equals to UPDATED_NUMBER_OF_PAGES
+        defaultBookShouldBeFound("numberOfPages.notEquals=" + UPDATED_NUMBER_OF_PAGES);
+    }
+
+    @Test
+    @Transactional
     public void getAllBooksByNumberOfPagesIsInShouldWork() throws Exception {
         // Initialize the database
         bookRepository.saveAndFlush(book);
@@ -612,6 +699,19 @@ public class BookResourceIT {
 
     @Test
     @Transactional
+    public void getAllBooksByPublishYearIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where publishYear not equals to DEFAULT_PUBLISH_YEAR
+        defaultBookShouldNotBeFound("publishYear.notEquals=" + DEFAULT_PUBLISH_YEAR);
+
+        // Get all the bookList where publishYear not equals to UPDATED_PUBLISH_YEAR
+        defaultBookShouldBeFound("publishYear.notEquals=" + UPDATED_PUBLISH_YEAR);
+    }
+
+    @Test
+    @Transactional
     public void getAllBooksByPublishYearIsInShouldWork() throws Exception {
         // Initialize the database
         bookRepository.saveAndFlush(book);
@@ -635,6 +735,32 @@ public class BookResourceIT {
         // Get all the bookList where publishYear is null
         defaultBookShouldNotBeFound("publishYear.specified=false");
     }
+                @Test
+    @Transactional
+    public void getAllBooksByPublishYearContainsSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where publishYear contains DEFAULT_PUBLISH_YEAR
+        defaultBookShouldBeFound("publishYear.contains=" + DEFAULT_PUBLISH_YEAR);
+
+        // Get all the bookList where publishYear contains UPDATED_PUBLISH_YEAR
+        defaultBookShouldNotBeFound("publishYear.contains=" + UPDATED_PUBLISH_YEAR);
+    }
+
+    @Test
+    @Transactional
+    public void getAllBooksByPublishYearNotContainsSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where publishYear does not contain DEFAULT_PUBLISH_YEAR
+        defaultBookShouldNotBeFound("publishYear.doesNotContain=" + DEFAULT_PUBLISH_YEAR);
+
+        // Get all the bookList where publishYear does not contain UPDATED_PUBLISH_YEAR
+        defaultBookShouldBeFound("publishYear.doesNotContain=" + UPDATED_PUBLISH_YEAR);
+    }
+
 
     @Test
     @Transactional
@@ -647,6 +773,19 @@ public class BookResourceIT {
 
         // Get all the bookList where coverUrl equals to UPDATED_COVER_URL
         defaultBookShouldNotBeFound("coverUrl.equals=" + UPDATED_COVER_URL);
+    }
+
+    @Test
+    @Transactional
+    public void getAllBooksByCoverUrlIsNotEqualToSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where coverUrl not equals to DEFAULT_COVER_URL
+        defaultBookShouldNotBeFound("coverUrl.notEquals=" + DEFAULT_COVER_URL);
+
+        // Get all the bookList where coverUrl not equals to UPDATED_COVER_URL
+        defaultBookShouldBeFound("coverUrl.notEquals=" + UPDATED_COVER_URL);
     }
 
     @Test
@@ -674,6 +813,32 @@ public class BookResourceIT {
         // Get all the bookList where coverUrl is null
         defaultBookShouldNotBeFound("coverUrl.specified=false");
     }
+                @Test
+    @Transactional
+    public void getAllBooksByCoverUrlContainsSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where coverUrl contains DEFAULT_COVER_URL
+        defaultBookShouldBeFound("coverUrl.contains=" + DEFAULT_COVER_URL);
+
+        // Get all the bookList where coverUrl contains UPDATED_COVER_URL
+        defaultBookShouldNotBeFound("coverUrl.contains=" + UPDATED_COVER_URL);
+    }
+
+    @Test
+    @Transactional
+    public void getAllBooksByCoverUrlNotContainsSomething() throws Exception {
+        // Initialize the database
+        bookRepository.saveAndFlush(book);
+
+        // Get all the bookList where coverUrl does not contain DEFAULT_COVER_URL
+        defaultBookShouldNotBeFound("coverUrl.doesNotContain=" + DEFAULT_COVER_URL);
+
+        // Get all the bookList where coverUrl does not contain UPDATED_COVER_URL
+        defaultBookShouldBeFound("coverUrl.doesNotContain=" + UPDATED_COVER_URL);
+    }
+
 
     @Test
     @Transactional
@@ -740,7 +905,7 @@ public class BookResourceIT {
     private void defaultBookShouldBeFound(String filter) throws Exception {
         restBookMockMvc.perform(get("/api/books?sort=id,desc&" + filter))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(book.getId().intValue())))
             .andExpect(jsonPath("$.[*].iSBN").value(hasItem(DEFAULT_I_SBN)))
             .andExpect(jsonPath("$.[*].title").value(hasItem(DEFAULT_TITLE)))
@@ -752,7 +917,7 @@ public class BookResourceIT {
         // Check, that the count call also returns 1
         restBookMockMvc.perform(get("/api/books/count?sort=id,desc&" + filter))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("1"));
     }
 
@@ -762,14 +927,14 @@ public class BookResourceIT {
     private void defaultBookShouldNotBeFound(String filter) throws Exception {
         restBookMockMvc.perform(get("/api/books?sort=id,desc&" + filter))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$").isArray())
             .andExpect(jsonPath("$").isEmpty());
 
         // Check, that the count call also returns 0
         restBookMockMvc.perform(get("/api/books/count?sort=id,desc&" + filter))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(content().string("0"));
     }
 
@@ -803,7 +968,7 @@ public class BookResourceIT {
             .coverUrl(UPDATED_COVER_URL);
 
         restBookMockMvc.perform(put("/api/books")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(updatedBook)))
             .andExpect(status().isOk());
 
@@ -828,7 +993,7 @@ public class BookResourceIT {
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restBookMockMvc.perform(put("/api/books")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(book)))
             .andExpect(status().isBadRequest());
 
@@ -847,26 +1012,11 @@ public class BookResourceIT {
 
         // Delete the book
         restBookMockMvc.perform(delete("/api/books/{id}", book.getId())
-            .accept(TestUtil.APPLICATION_JSON_UTF8))
+            .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 
         // Validate the database contains one less item
         List<Book> bookList = bookRepository.findAll();
         assertThat(bookList).hasSize(databaseSizeBeforeDelete - 1);
-    }
-
-    @Test
-    @Transactional
-    public void equalsVerifier() throws Exception {
-        TestUtil.equalsVerifier(Book.class);
-        Book book1 = new Book();
-        book1.setId(1L);
-        Book book2 = new Book();
-        book2.setId(book1.getId());
-        assertThat(book1).isEqualTo(book2);
-        book2.setId(2L);
-        assertThat(book1).isNotEqualTo(book2);
-        book1.setId(null);
-        assertThat(book1).isNotEqualTo(book2);
     }
 }

@@ -51,7 +51,6 @@ public class PublisherServiceImpl implements PublisherService {
         return publisherRepository.findAll();
     }
 
-
     /**
      * Get one publisher by id.
      *

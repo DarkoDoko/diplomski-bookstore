@@ -1,4 +1,3 @@
-/* tslint:disable no-unused-expression */
 import { browser, ExpectedConditions as ec, promise } from 'protractor';
 import { NavBarPage, SignInPage } from '../../page-objects/jhi-page-objects';
 
@@ -9,8 +8,8 @@ const expect = chai.expect;
 describe('Author e2e test', () => {
   let navBarPage: NavBarPage;
   let signInPage: SignInPage;
-  let authorUpdatePage: AuthorUpdatePage;
   let authorComponentsPage: AuthorComponentsPage;
+  let authorUpdatePage: AuthorUpdatePage;
   let authorDeleteDialog: AuthorDeleteDialog;
 
   before(async () => {
@@ -26,6 +25,7 @@ describe('Author e2e test', () => {
     authorComponentsPage = new AuthorComponentsPage();
     await browser.wait(ec.visibilityOf(authorComponentsPage.title), 5000);
     expect(await authorComponentsPage.getTitle()).to.eq('Authors');
+    await browser.wait(ec.or(ec.visibilityOf(authorComponentsPage.entities), ec.visibilityOf(authorComponentsPage.noResult)), 1000);
   });
 
   it('should load create Author page', async () => {
@@ -39,9 +39,12 @@ describe('Author e2e test', () => {
     const nbButtonsBeforeCreate = await authorComponentsPage.countDeleteButtons();
 
     await authorComponentsPage.clickOnCreateButton();
+
     await promise.all([authorUpdatePage.setFirstNameInput('firstName'), authorUpdatePage.setLastNameInput('lastName')]);
+
     expect(await authorUpdatePage.getFirstNameInput()).to.eq('firstName', 'Expected FirstName value to be equals to firstName');
     expect(await authorUpdatePage.getLastNameInput()).to.eq('lastName', 'Expected LastName value to be equals to lastName');
+
     await authorUpdatePage.save();
     expect(await authorUpdatePage.getSaveButton().isPresent(), 'Expected save button disappear').to.be.false;
 

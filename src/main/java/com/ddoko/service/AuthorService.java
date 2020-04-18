@@ -28,7 +28,6 @@ public interface AuthorService {
      */
     Page<Author> findAll(Pageable pageable);
 
-
     /**
      * Get the "id" author.
      *

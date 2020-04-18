@@ -5,25 +5,19 @@ import com.ddoko.domain.Customer;
 import com.ddoko.domain.User;
 import com.ddoko.repository.CustomerRepository;
 import com.ddoko.service.CustomerService;
-import com.ddoko.web.rest.errors.ExceptionTranslator;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.Validator;
-
 import javax.persistence.EntityManager;
 import java.util.List;
 
-import static com.ddoko.web.rest.TestUtil.createFormattingConversionService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -33,6 +27,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Integration tests for the {@link CustomerResource} REST controller.
  */
 @SpringBootTest(classes = BookstoreApp.class)
+
+@AutoConfigureMockMvc
+@WithMockUser
 public class CustomerResourceIT {
 
     private static final String DEFAULT_FIRST_NAME = "AAAAAAAAAA";
@@ -41,8 +38,8 @@ public class CustomerResourceIT {
     private static final String DEFAULT_LAST_NAME = "AAAAAAAAAA";
     private static final String UPDATED_LAST_NAME = "BBBBBBBBBB";
 
-    private static final String DEFAULT_EMAIL = "y@Q=.{";
-    private static final String UPDATED_EMAIL = "&@>.yQ";
+    private static final String DEFAULT_EMAIL = "KM/'p@Z.kOi]5L";
+    private static final String UPDATED_EMAIL = "<IVj7J@Us.L{\\XL";
 
     private static final String DEFAULT_TELEPHONE = "AAAAAAAAAA";
     private static final String UPDATED_TELEPHONE = "BBBBBBBBBB";
@@ -54,35 +51,12 @@ public class CustomerResourceIT {
     private CustomerService customerService;
 
     @Autowired
-    private MappingJackson2HttpMessageConverter jacksonMessageConverter;
-
-    @Autowired
-    private PageableHandlerMethodArgumentResolver pageableArgumentResolver;
-
-    @Autowired
-    private ExceptionTranslator exceptionTranslator;
-
-    @Autowired
     private EntityManager em;
 
     @Autowired
-    private Validator validator;
-
     private MockMvc restCustomerMockMvc;
 
     private Customer customer;
-
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.initMocks(this);
-        final CustomerResource customerResource = new CustomerResource(customerService);
-        this.restCustomerMockMvc = MockMvcBuilders.standaloneSetup(customerResource)
-            .setCustomArgumentResolvers(pageableArgumentResolver)
-            .setControllerAdvice(exceptionTranslator)
-            .setConversionService(createFormattingConversionService())
-            .setMessageConverters(jacksonMessageConverter)
-            .setValidator(validator).build();
-    }
 
     /**
      * Create an entity for this test.
@@ -135,7 +109,7 @@ public class CustomerResourceIT {
 
         // Create the Customer
         restCustomerMockMvc.perform(post("/api/customers")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(customer)))
             .andExpect(status().isCreated());
 
@@ -159,7 +133,7 @@ public class CustomerResourceIT {
 
         // An entity with an existing ID cannot be created, so this API call must fail
         restCustomerMockMvc.perform(post("/api/customers")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(customer)))
             .andExpect(status().isBadRequest());
 
@@ -179,7 +153,7 @@ public class CustomerResourceIT {
         // Create the Customer, which fails.
 
         restCustomerMockMvc.perform(post("/api/customers")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(customer)))
             .andExpect(status().isBadRequest());
 
@@ -197,7 +171,7 @@ public class CustomerResourceIT {
         // Create the Customer, which fails.
 
         restCustomerMockMvc.perform(post("/api/customers")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(customer)))
             .andExpect(status().isBadRequest());
 
@@ -215,7 +189,7 @@ public class CustomerResourceIT {
         // Create the Customer, which fails.
 
         restCustomerMockMvc.perform(post("/api/customers")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(customer)))
             .andExpect(status().isBadRequest());
 
@@ -232,12 +206,12 @@ public class CustomerResourceIT {
         // Get all the customerList
         restCustomerMockMvc.perform(get("/api/customers?sort=id,desc"))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.[*].id").value(hasItem(customer.getId().intValue())))
-            .andExpect(jsonPath("$.[*].firstName").value(hasItem(DEFAULT_FIRST_NAME.toString())))
-            .andExpect(jsonPath("$.[*].lastName").value(hasItem(DEFAULT_LAST_NAME.toString())))
-            .andExpect(jsonPath("$.[*].email").value(hasItem(DEFAULT_EMAIL.toString())))
-            .andExpect(jsonPath("$.[*].telephone").value(hasItem(DEFAULT_TELEPHONE.toString())));
+            .andExpect(jsonPath("$.[*].firstName").value(hasItem(DEFAULT_FIRST_NAME)))
+            .andExpect(jsonPath("$.[*].lastName").value(hasItem(DEFAULT_LAST_NAME)))
+            .andExpect(jsonPath("$.[*].email").value(hasItem(DEFAULT_EMAIL)))
+            .andExpect(jsonPath("$.[*].telephone").value(hasItem(DEFAULT_TELEPHONE)));
     }
     
     @Test
@@ -249,12 +223,12 @@ public class CustomerResourceIT {
         // Get the customer
         restCustomerMockMvc.perform(get("/api/customers/{id}", customer.getId()))
             .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8_VALUE))
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE))
             .andExpect(jsonPath("$.id").value(customer.getId().intValue()))
-            .andExpect(jsonPath("$.firstName").value(DEFAULT_FIRST_NAME.toString()))
-            .andExpect(jsonPath("$.lastName").value(DEFAULT_LAST_NAME.toString()))
-            .andExpect(jsonPath("$.email").value(DEFAULT_EMAIL.toString()))
-            .andExpect(jsonPath("$.telephone").value(DEFAULT_TELEPHONE.toString()));
+            .andExpect(jsonPath("$.firstName").value(DEFAULT_FIRST_NAME))
+            .andExpect(jsonPath("$.lastName").value(DEFAULT_LAST_NAME))
+            .andExpect(jsonPath("$.email").value(DEFAULT_EMAIL))
+            .andExpect(jsonPath("$.telephone").value(DEFAULT_TELEPHONE));
     }
 
     @Test
@@ -284,7 +258,7 @@ public class CustomerResourceIT {
             .telephone(UPDATED_TELEPHONE);
 
         restCustomerMockMvc.perform(put("/api/customers")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(updatedCustomer)))
             .andExpect(status().isOk());
 
@@ -307,7 +281,7 @@ public class CustomerResourceIT {
 
         // If the entity doesn't have an ID, it will throw BadRequestAlertException
         restCustomerMockMvc.perform(put("/api/customers")
-            .contentType(TestUtil.APPLICATION_JSON_UTF8)
+            .contentType(MediaType.APPLICATION_JSON)
             .content(TestUtil.convertObjectToJsonBytes(customer)))
             .andExpect(status().isBadRequest());
 
@@ -326,26 +300,11 @@ public class CustomerResourceIT {
 
         // Delete the customer
         restCustomerMockMvc.perform(delete("/api/customers/{id}", customer.getId())
-            .accept(TestUtil.APPLICATION_JSON_UTF8))
+            .accept(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 
         // Validate the database contains one less item
         List<Customer> customerList = customerRepository.findAll();
         assertThat(customerList).hasSize(databaseSizeBeforeDelete - 1);
-    }
-
-    @Test
-    @Transactional
-    public void equalsVerifier() throws Exception {
-        TestUtil.equalsVerifier(Customer.class);
-        Customer customer1 = new Customer();
-        customer1.setId(1L);
-        Customer customer2 = new Customer();
-        customer2.setId(customer1.getId());
-        assertThat(customer1).isEqualTo(customer2);
-        customer2.setId(2L);
-        assertThat(customer1).isNotEqualTo(customer2);
-        customer1.setId(null);
-        assertThat(customer1).isNotEqualTo(customer2);
     }
 }

@@ -1,8 +1,10 @@
 import { Component, OnInit } from '@angular/core';
-import { HttpResponse, HttpErrorResponse } from '@angular/common/http';
+import { HttpResponse } from '@angular/common/http';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
+
 import { IPublisher, Publisher } from 'app/shared/model/publisher.model';
 import { PublisherService } from './publisher.service';
 
@@ -11,7 +13,7 @@ import { PublisherService } from './publisher.service';
   templateUrl: './publisher-update.component.html'
 })
 export class PublisherUpdateComponent implements OnInit {
-  isSaving: boolean;
+  isSaving = false;
 
   editForm = this.fb.group({
     id: [],
@@ -20,25 +22,24 @@ export class PublisherUpdateComponent implements OnInit {
 
   constructor(protected publisherService: PublisherService, protected activatedRoute: ActivatedRoute, private fb: FormBuilder) {}
 
-  ngOnInit() {
-    this.isSaving = false;
+  ngOnInit(): void {
     this.activatedRoute.data.subscribe(({ publisher }) => {
       this.updateForm(publisher);
     });
   }
 
-  updateForm(publisher: IPublisher) {
+  updateForm(publisher: IPublisher): void {
     this.editForm.patchValue({
       id: publisher.id,
       name: publisher.name
     });
   }
 
-  previousState() {
+  previousState(): void {
     window.history.back();
   }
 
-  save() {
+  save(): void {
     this.isSaving = true;
     const publisher = this.createFromForm();
     if (publisher.id !== undefined) {
@@ -51,21 +52,24 @@ export class PublisherUpdateComponent implements OnInit {
   private createFromForm(): IPublisher {
     return {
       ...new Publisher(),
-      id: this.editForm.get(['id']).value,
-      name: this.editForm.get(['name']).value
+      id: this.editForm.get(['id'])!.value,
+      name: this.editForm.get(['name'])!.value
     };
   }
 
-  protected subscribeToSaveResponse(result: Observable<HttpResponse<IPublisher>>) {
-    result.subscribe(() => this.onSaveSuccess(), () => this.onSaveError());
+  protected subscribeToSaveResponse(result: Observable<HttpResponse<IPublisher>>): void {
+    result.subscribe(
+      () => this.onSaveSuccess(),
+      () => this.onSaveError()
+    );
   }
 
-  protected onSaveSuccess() {
+  protected onSaveSuccess(): void {
     this.isSaving = false;
     this.previousState();
   }
 
-  protected onSaveError() {
+  protected onSaveError(): void {
     this.isSaving = false;
   }
 }

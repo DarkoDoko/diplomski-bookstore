@@ -25,7 +25,6 @@ public interface PublisherService {
      */
     List<Publisher> findAll();
 
-
     /**
      * Get the "id" publisher.
      *

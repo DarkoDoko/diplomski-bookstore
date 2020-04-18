@@ -1,28 +1,34 @@
 import { Injectable } from '@angular/core';
 import { HttpResponse } from '@angular/common/http';
-import { Resolve, ActivatedRouteSnapshot, RouterStateSnapshot, Routes } from '@angular/router';
-import { JhiPaginationUtil, JhiResolvePagingParams } from 'ng-jhipster';
-import { UserRouteAccessService } from 'app/core';
-import { Observable, of } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { Author } from 'app/shared/model/author.model';
+import { Resolve, ActivatedRouteSnapshot, Routes, Router } from '@angular/router';
+import { JhiResolvePagingParams } from 'ng-jhipster';
+import { Observable, of, EMPTY } from 'rxjs';
+import { flatMap } from 'rxjs/operators';
+
+import { Authority } from 'app/shared/constants/authority.constants';
+import { UserRouteAccessService } from 'app/core/auth/user-route-access-service';
+import { IAuthor, Author } from 'app/shared/model/author.model';
 import { AuthorService } from './author.service';
 import { AuthorComponent } from './author.component';
 import { AuthorDetailComponent } from './author-detail.component';
 import { AuthorUpdateComponent } from './author-update.component';
-import { AuthorDeletePopupComponent } from './author-delete-dialog.component';
-import { IAuthor } from 'app/shared/model/author.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthorResolve implements Resolve<IAuthor> {
-  constructor(private service: AuthorService) {}
+  constructor(private service: AuthorService, private router: Router) {}
 
-  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<IAuthor> {
+  resolve(route: ActivatedRouteSnapshot): Observable<IAuthor> | Observable<never> {
     const id = route.params['id'];
     if (id) {
       return this.service.find(id).pipe(
-        filter((response: HttpResponse<Author>) => response.ok),
-        map((author: HttpResponse<Author>) => author.body)
+        flatMap((author: HttpResponse<Author>) => {
+          if (author.body) {
+            return of(author.body);
+          } else {
+            this.router.navigate(['404']);
+            return EMPTY;
+          }
+        })
       );
     }
     return of(new Author());
@@ -37,7 +43,7 @@ export const authorRoute: Routes = [
       pagingParams: JhiResolvePagingParams
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       defaultSort: 'id,asc',
       pageTitle: 'Authors'
     },
@@ -50,7 +56,7 @@ export const authorRoute: Routes = [
       author: AuthorResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'Authors'
     },
     canActivate: [UserRouteAccessService]
@@ -62,7 +68,7 @@ export const authorRoute: Routes = [
       author: AuthorResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'Authors'
     },
     canActivate: [UserRouteAccessService]
@@ -74,25 +80,9 @@ export const authorRoute: Routes = [
       author: AuthorResolve
     },
     data: {
-      authorities: ['ROLE_USER'],
+      authorities: [Authority.USER],
       pageTitle: 'Authors'
     },
     canActivate: [UserRouteAccessService]
-  }
-];
-
-export const authorPopupRoute: Routes = [
-  {
-    path: ':id/delete',
-    component: AuthorDeletePopupComponent,
-    resolve: {
-      author: AuthorResolve
-    },
-    data: {
-      authorities: ['ROLE_USER'],
-      pageTitle: 'Authors'
-    },
-    canActivate: [UserRouteAccessService],
-    outlet: 'popup'
   }
 ];

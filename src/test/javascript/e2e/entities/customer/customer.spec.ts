@@ -1,17 +1,20 @@
-/* tslint:disable no-unused-expression */
-import { browser, ExpectedConditions as ec, promise } from 'protractor';
+import { browser, ExpectedConditions as ec /* , promise */ } from 'protractor';
 import { NavBarPage, SignInPage } from '../../page-objects/jhi-page-objects';
 
-import { CustomerComponentsPage, CustomerDeleteDialog, CustomerUpdatePage } from './customer.page-object';
+import {
+  CustomerComponentsPage,
+  /* CustomerDeleteDialog, */
+  CustomerUpdatePage
+} from './customer.page-object';
 
 const expect = chai.expect;
 
 describe('Customer e2e test', () => {
   let navBarPage: NavBarPage;
   let signInPage: SignInPage;
-  let customerUpdatePage: CustomerUpdatePage;
   let customerComponentsPage: CustomerComponentsPage;
-  /*let customerDeleteDialog: CustomerDeleteDialog;*/
+  let customerUpdatePage: CustomerUpdatePage;
+  /* let customerDeleteDialog: CustomerDeleteDialog; */
 
   before(async () => {
     await browser.get('/');
@@ -26,6 +29,7 @@ describe('Customer e2e test', () => {
     customerComponentsPage = new CustomerComponentsPage();
     await browser.wait(ec.visibilityOf(customerComponentsPage.title), 5000);
     expect(await customerComponentsPage.getTitle()).to.eq('Customers');
+    await browser.wait(ec.or(ec.visibilityOf(customerComponentsPage.entities), ec.visibilityOf(customerComponentsPage.noResult)), 1000);
   });
 
   it('should load create Customer page', async () => {
@@ -39,22 +43,25 @@ describe('Customer e2e test', () => {
         const nbButtonsBeforeCreate = await customerComponentsPage.countDeleteButtons();
 
         await customerComponentsPage.clickOnCreateButton();
+
         await promise.all([
             customerUpdatePage.setFirstNameInput('firstName'),
             customerUpdatePage.setLastNameInput('lastName'),
-            customerUpdatePage.setEmailInput('email'),
+            customerUpdatePage.setEmailInput('}o@)Y&lt;L.d52\['),
             customerUpdatePage.setTelephoneInput('telephone'),
             customerUpdatePage.userSelectLastOption(),
         ]);
+
         expect(await customerUpdatePage.getFirstNameInput()).to.eq('firstName', 'Expected FirstName value to be equals to firstName');
         expect(await customerUpdatePage.getLastNameInput()).to.eq('lastName', 'Expected LastName value to be equals to lastName');
-        expect(await customerUpdatePage.getEmailInput()).to.eq('email', 'Expected Email value to be equals to email');
+        expect(await customerUpdatePage.getEmailInput()).to.eq('}o@)Y&lt;L.d52\[', 'Expected Email value to be equals to }o@)Y&lt;L.d52\[');
         expect(await customerUpdatePage.getTelephoneInput()).to.eq('telephone', 'Expected Telephone value to be equals to telephone');
+
         await customerUpdatePage.save();
         expect(await customerUpdatePage.getSaveButton().isPresent(), 'Expected save button disappear').to.be.false;
 
         expect(await customerComponentsPage.countDeleteButtons()).to.eq(nbButtonsBeforeCreate + 1, 'Expected one more entry in the table');
-    });*/
+    }); */
 
   /* it('should delete last Customer', async () => {
         const nbButtonsBeforeDelete = await customerComponentsPage.countDeleteButtons();
@@ -66,7 +73,7 @@ describe('Customer e2e test', () => {
         await customerDeleteDialog.clickOnConfirmButton();
 
         expect(await customerComponentsPage.countDeleteButtons()).to.eq(nbButtonsBeforeDelete - 1);
-    });*/
+    }); */
 
   after(async () => {
     await navBarPage.autoSignOut();

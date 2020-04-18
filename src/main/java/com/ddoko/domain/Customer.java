@@ -1,4 +1,5 @@
 package com.ddoko.domain;
+
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 
@@ -6,6 +7,7 @@ import javax.persistence.*;
 import javax.validation.constraints.*;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -40,8 +42,8 @@ public class Customer implements Serializable {
     @Column(name = "telephone")
     private String telephone;
 
-    @OneToOne(optional = false)    @NotNull
-
+    @OneToOne(optional = false)
+    @NotNull
     @JoinColumn(unique = true)
     private User user;
 

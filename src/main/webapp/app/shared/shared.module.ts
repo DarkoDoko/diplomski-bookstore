@@ -1,17 +1,14 @@
-import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { BookstoreSharedCommonModule, JhiLoginModalComponent, HasAnyAuthorityDirective } from './';
+import { NgModule } from '@angular/core';
+import { BookstoreSharedLibsModule } from './shared-libs.module';
+import { AlertComponent } from './alert/alert.component';
+import { AlertErrorComponent } from './alert/alert-error.component';
+import { LoginModalComponent } from './login/login.component';
+import { HasAnyAuthorityDirective } from './auth/has-any-authority.directive';
 
 @NgModule({
-  imports: [BookstoreSharedCommonModule],
-  declarations: [JhiLoginModalComponent, HasAnyAuthorityDirective],
-  entryComponents: [JhiLoginModalComponent],
-  exports: [BookstoreSharedCommonModule, JhiLoginModalComponent, HasAnyAuthorityDirective],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [BookstoreSharedLibsModule],
+  declarations: [AlertComponent, AlertErrorComponent, LoginModalComponent, HasAnyAuthorityDirective],
+  entryComponents: [LoginModalComponent],
+  exports: [BookstoreSharedLibsModule, AlertComponent, AlertErrorComponent, LoginModalComponent, HasAnyAuthorityDirective]
 })
-export class BookstoreSharedModule {
-  static forRoot() {
-    return {
-      ngModule: BookstoreSharedModule
-    };
-  }
-}
+export class BookstoreSharedModule {}

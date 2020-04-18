@@ -25,7 +25,6 @@ public interface OrderItemService {
      */
     List<OrderItem> findAll();
 
-
     /**
      * Get the "id" orderItem.
      *

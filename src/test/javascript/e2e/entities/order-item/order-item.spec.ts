@@ -1,17 +1,20 @@
-/* tslint:disable no-unused-expression */
-import { browser, ExpectedConditions as ec, promise } from 'protractor';
+import { browser, ExpectedConditions as ec /* , promise */ } from 'protractor';
 import { NavBarPage, SignInPage } from '../../page-objects/jhi-page-objects';
 
-import { OrderItemComponentsPage, OrderItemDeleteDialog, OrderItemUpdatePage } from './order-item.page-object';
+import {
+  OrderItemComponentsPage,
+  /* OrderItemDeleteDialog, */
+  OrderItemUpdatePage
+} from './order-item.page-object';
 
 const expect = chai.expect;
 
 describe('OrderItem e2e test', () => {
   let navBarPage: NavBarPage;
   let signInPage: SignInPage;
-  let orderItemUpdatePage: OrderItemUpdatePage;
   let orderItemComponentsPage: OrderItemComponentsPage;
-  /*let orderItemDeleteDialog: OrderItemDeleteDialog;*/
+  let orderItemUpdatePage: OrderItemUpdatePage;
+  /* let orderItemDeleteDialog: OrderItemDeleteDialog; */
 
   before(async () => {
     await browser.get('/');
@@ -26,6 +29,7 @@ describe('OrderItem e2e test', () => {
     orderItemComponentsPage = new OrderItemComponentsPage();
     await browser.wait(ec.visibilityOf(orderItemComponentsPage.title), 5000);
     expect(await orderItemComponentsPage.getTitle()).to.eq('Order Items');
+    await browser.wait(ec.or(ec.visibilityOf(orderItemComponentsPage.entities), ec.visibilityOf(orderItemComponentsPage.noResult)), 1000);
   });
 
   it('should load create OrderItem page', async () => {
@@ -39,19 +43,22 @@ describe('OrderItem e2e test', () => {
         const nbButtonsBeforeCreate = await orderItemComponentsPage.countDeleteButtons();
 
         await orderItemComponentsPage.clickOnCreateButton();
+
         await promise.all([
             orderItemUpdatePage.setQuantityInput('5'),
             orderItemUpdatePage.setTotalPriceInput('5'),
             orderItemUpdatePage.bookSelectLastOption(),
             orderItemUpdatePage.orderSelectLastOption(),
         ]);
+
         expect(await orderItemUpdatePage.getQuantityInput()).to.eq('5', 'Expected quantity value to be equals to 5');
         expect(await orderItemUpdatePage.getTotalPriceInput()).to.eq('5', 'Expected totalPrice value to be equals to 5');
+
         await orderItemUpdatePage.save();
         expect(await orderItemUpdatePage.getSaveButton().isPresent(), 'Expected save button disappear').to.be.false;
 
         expect(await orderItemComponentsPage.countDeleteButtons()).to.eq(nbButtonsBeforeCreate + 1, 'Expected one more entry in the table');
-    });*/
+    }); */
 
   /* it('should delete last OrderItem', async () => {
         const nbButtonsBeforeDelete = await orderItemComponentsPage.countDeleteButtons();
@@ -63,7 +70,7 @@ describe('OrderItem e2e test', () => {
         await orderItemDeleteDialog.clickOnConfirmButton();
 
         expect(await orderItemComponentsPage.countDeleteButtons()).to.eq(nbButtonsBeforeDelete - 1);
-    });*/
+    }); */
 
   after(async () => {
     await navBarPage.autoSignOut();

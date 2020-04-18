@@ -1,4 +1,3 @@
-/* tslint:disable no-unused-expression */
 import { browser, ExpectedConditions as ec, promise } from 'protractor';
 import { NavBarPage, SignInPage } from '../../page-objects/jhi-page-objects';
 
@@ -9,8 +8,8 @@ const expect = chai.expect;
 describe('Book e2e test', () => {
   let navBarPage: NavBarPage;
   let signInPage: SignInPage;
-  let bookUpdatePage: BookUpdatePage;
   let bookComponentsPage: BookComponentsPage;
+  let bookUpdatePage: BookUpdatePage;
   let bookDeleteDialog: BookDeleteDialog;
 
   before(async () => {
@@ -26,6 +25,7 @@ describe('Book e2e test', () => {
     bookComponentsPage = new BookComponentsPage();
     await browser.wait(ec.visibilityOf(bookComponentsPage.title), 5000);
     expect(await bookComponentsPage.getTitle()).to.eq('Books');
+    await browser.wait(ec.or(ec.visibilityOf(bookComponentsPage.entities), ec.visibilityOf(bookComponentsPage.noResult)), 1000);
   });
 
   it('should load create Book page', async () => {
@@ -39,6 +39,7 @@ describe('Book e2e test', () => {
     const nbButtonsBeforeCreate = await bookComponentsPage.countDeleteButtons();
 
     await bookComponentsPage.clickOnCreateButton();
+
     await promise.all([
       bookUpdatePage.setISBNInput('iSBN'),
       bookUpdatePage.setTitleInput('title'),
@@ -50,12 +51,14 @@ describe('Book e2e test', () => {
       // bookUpdatePage.authorSelectLastOption(),
       bookUpdatePage.categorySelectLastOption()
     ]);
+
     expect(await bookUpdatePage.getISBNInput()).to.eq('iSBN', 'Expected ISBN value to be equals to iSBN');
     expect(await bookUpdatePage.getTitleInput()).to.eq('title', 'Expected Title value to be equals to title');
     expect(await bookUpdatePage.getPriceInput()).to.eq('5', 'Expected price value to be equals to 5');
     expect(await bookUpdatePage.getNumberOfPagesInput()).to.eq('5', 'Expected numberOfPages value to be equals to 5');
     expect(await bookUpdatePage.getPublishYearInput()).to.eq('publishYear', 'Expected PublishYear value to be equals to publishYear');
     expect(await bookUpdatePage.getCoverUrlInput()).to.eq('coverUrl', 'Expected CoverUrl value to be equals to coverUrl');
+
     await bookUpdatePage.save();
     expect(await bookUpdatePage.getSaveButton().isPresent(), 'Expected save button disappear').to.be.false;
 

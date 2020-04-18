@@ -1,6 +1,7 @@
 package com.ddoko.repository;
 
 import com.ddoko.domain.Book;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
@@ -25,5 +26,4 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
 
     @Query("select book from Book book left join fetch book.authors where book.id =:id")
     Optional<Book> findOneWithEagerRelationships(@Param("id") Long id);
-
 }

@@ -5,9 +5,6 @@ import com.ddoko.config.Constants;
 import com.ddoko.domain.Authority;
 import com.ddoko.domain.User;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-
 import javax.validation.constraints.*;
 import java.time.Instant;
 import java.util.Set;

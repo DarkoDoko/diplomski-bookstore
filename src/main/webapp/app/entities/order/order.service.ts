@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import * as moment from 'moment';
-import { DATE_FORMAT } from 'app/shared/constants/input.constants';
 import { map } from 'rxjs/operators';
+import * as moment from 'moment';
 
 import { SERVER_API_URL } from 'app/app.constants';
-import { createRequestOption } from 'app/shared';
+import { createRequestOption } from 'app/shared/util/request-util';
 import { IOrder } from 'app/shared/model/order.model';
 
 type EntityResponseType = HttpResponse<IOrder>;
@@ -45,20 +44,20 @@ export class OrderService {
       .pipe(map((res: EntityArrayResponseType) => this.convertDateArrayFromServer(res)));
   }
 
-  delete(id: number): Observable<HttpResponse<any>> {
-    return this.http.delete<any>(`${this.resourceUrl}/${id}`, { observe: 'response' });
+  delete(id: number): Observable<HttpResponse<{}>> {
+    return this.http.delete(`${this.resourceUrl}/${id}`, { observe: 'response' });
   }
 
   protected convertDateFromClient(order: IOrder): IOrder {
     const copy: IOrder = Object.assign({}, order, {
-      placedAt: order.placedAt != null && order.placedAt.isValid() ? order.placedAt.toJSON() : null
+      placedAt: order.placedAt && order.placedAt.isValid() ? order.placedAt.toJSON() : undefined
     });
     return copy;
   }
 
   protected convertDateFromServer(res: EntityResponseType): EntityResponseType {
     if (res.body) {
-      res.body.placedAt = res.body.placedAt != null ? moment(res.body.placedAt) : null;
+      res.body.placedAt = res.body.placedAt ? moment(res.body.placedAt) : undefined;
     }
     return res;
   }
@@ -66,7 +65,7 @@ export class OrderService {
   protected convertDateArrayFromServer(res: EntityArrayResponseType): EntityArrayResponseType {
     if (res.body) {
       res.body.forEach((order: IOrder) => {
-        order.placedAt = order.placedAt != null ? moment(order.placedAt) : null;
+        order.placedAt = order.placedAt ? moment(order.placedAt) : undefined;
       });
     }
     return res;

@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.net.URI;
 import java.net.URISyntaxException;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -82,7 +81,6 @@ public class OrderResource {
     /**
      * {@code GET  /orders} : get all the orders.
      *
-
      * @return the {@link ResponseEntity} with status {@code 200 (OK)} and the list of orders in body.
      */
     @GetMapping("/orders")

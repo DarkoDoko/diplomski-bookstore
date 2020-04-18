@@ -25,7 +25,6 @@ public interface AddressService {
      */
     List<Address> findAll();
 
-
     /**
      * Get the "id" address.
      *

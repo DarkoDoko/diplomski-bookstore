@@ -1,29 +1,16 @@
-import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
-import { BookstoreSharedModule } from 'app/shared';
-import {
-  PublisherComponent,
-  PublisherDetailComponent,
-  PublisherUpdateComponent,
-  PublisherDeletePopupComponent,
-  PublisherDeleteDialogComponent,
-  publisherRoute,
-  publisherPopupRoute
-} from './';
-
-const ENTITY_STATES = [...publisherRoute, ...publisherPopupRoute];
+import { BookstoreSharedModule } from 'app/shared/shared.module';
+import { PublisherComponent } from './publisher.component';
+import { PublisherDetailComponent } from './publisher-detail.component';
+import { PublisherUpdateComponent } from './publisher-update.component';
+import { PublisherDeleteDialogComponent } from './publisher-delete-dialog.component';
+import { publisherRoute } from './publisher.route';
 
 @NgModule({
-  imports: [BookstoreSharedModule, RouterModule.forChild(ENTITY_STATES)],
-  declarations: [
-    PublisherComponent,
-    PublisherDetailComponent,
-    PublisherUpdateComponent,
-    PublisherDeleteDialogComponent,
-    PublisherDeletePopupComponent
-  ],
-  entryComponents: [PublisherComponent, PublisherUpdateComponent, PublisherDeleteDialogComponent, PublisherDeletePopupComponent],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [BookstoreSharedModule, RouterModule.forChild(publisherRoute)],
+  declarations: [PublisherComponent, PublisherDetailComponent, PublisherUpdateComponent, PublisherDeleteDialogComponent],
+  entryComponents: [PublisherDeleteDialogComponent]
 })
 export class BookstorePublisherModule {}

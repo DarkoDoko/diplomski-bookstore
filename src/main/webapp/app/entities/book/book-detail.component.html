@@ -1,50 +1,53 @@
 <div class="row justify-content-center">
     <div class="col-8">
         <div *ngIf="book">
-            <h2><span>Book</span> {{book.id}}</h2>
+            <h2><span>Book</span> {{ book.id }}</h2>
+
             <hr>
+
             <jhi-alert-error></jhi-alert-error>
+
             <dl class="row-md jh-entity-details">
                 <dt><span>I SBN</span></dt>
                 <dd>
-                    <span>{{book.iSBN}}</span>
+                    <span>{{ book.iSBN }}</span>
                 </dd>
                 <dt><span>Title</span></dt>
                 <dd>
-                    <span>{{book.title}}</span>
+                    <span>{{ book.title }}</span>
                 </dd>
                 <dt><span>Price</span></dt>
                 <dd>
-                    <span>{{book.price}}</span>
+                    <span>{{ book.price }}</span>
                 </dd>
                 <dt><span>Number Of Pages</span></dt>
                 <dd>
-                    <span>{{book.numberOfPages}}</span>
+                    <span>{{ book.numberOfPages }}</span>
                 </dd>
                 <dt><span>Publish Year</span></dt>
                 <dd>
-                    <span>{{book.publishYear}}</span>
+                    <span>{{ book.publishYear }}</span>
                 </dd>
                 <dt><span>Cover Url</span></dt>
                 <dd>
-                    <span>{{book.coverUrl}}</span>
+                    <span>{{ book.coverUrl }}</span>
                 </dd>
                 <dt><span>Publisher</span></dt>
                 <dd>
                     <div *ngIf="book.publisher">
-                        <a [routerLink]="['/publisher', book.publisher?.id, 'view']">{{book.publisher?.name}}</a>
+                        <a [routerLink]="['/publisher', book.publisher?.id, 'view']">{{ book.publisher?.name }}</a>
                     </div>
                 </dd>
                 <dt><span>Author</span></dt>
                 <dd>
                     <span *ngFor="let author of book.authors; let last = last">
-                        <a [routerLink]="['/author', author?.id, 'view' ]">{{author.firstName}}</a>{{last ? '' : ', '}}
+                        <a [routerLink]="['/author', author?.id, 'view']">{{ author.firstName }}</a>{{ last ? '' : ', ' }}
                     </span>
                 </dd>
                 <dt><span>Category</span></dt>
                 <dd>
                     <div *ngIf="book.category">
-                        <a [routerLink]="['/category', book.category?.id, 'view']">{{book.category?.name}}</a>
+                        <a [routerLink]="['/category', book.category?.id, 'view']">{{ book.category?.name }}</a>
                     </div>
                 </dd>
             </dl>
@@ -52,13 +55,13 @@
             <button type="submit"
                     (click)="previousState()"
                     class="btn btn-info">
-                <fa-icon [icon]="'arrow-left'"></fa-icon>&nbsp;<span> Back</span>
+                <fa-icon icon="arrow-left"></fa-icon>&nbsp;<span>Back</span>
             </button>
 
             <button type="button"
                     [routerLink]="['/book', book.id, 'edit']"
                     class="btn btn-primary">
-                <fa-icon [icon]="'pencil-alt'"></fa-icon>&nbsp;<span> Edit</span>
+                <fa-icon icon="pencil-alt"></fa-icon>&nbsp;<span>Edit</span>
             </button>
         </div>
     </div>

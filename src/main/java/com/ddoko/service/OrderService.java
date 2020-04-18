@@ -25,7 +25,6 @@ public interface OrderService {
      */
     List<Order> findAll();
 
-
     /**
      * Get the "id" order.
      *

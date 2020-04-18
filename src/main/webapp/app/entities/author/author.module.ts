@@ -1,23 +1,16 @@
-import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { NgModule } from '@angular/core';
 import { RouterModule } from '@angular/router';
 
-import { BookstoreSharedModule } from 'app/shared';
-import {
-  AuthorComponent,
-  AuthorDetailComponent,
-  AuthorUpdateComponent,
-  AuthorDeletePopupComponent,
-  AuthorDeleteDialogComponent,
-  authorRoute,
-  authorPopupRoute
-} from './';
-
-const ENTITY_STATES = [...authorRoute, ...authorPopupRoute];
+import { BookstoreSharedModule } from 'app/shared/shared.module';
+import { AuthorComponent } from './author.component';
+import { AuthorDetailComponent } from './author-detail.component';
+import { AuthorUpdateComponent } from './author-update.component';
+import { AuthorDeleteDialogComponent } from './author-delete-dialog.component';
+import { authorRoute } from './author.route';
 
 @NgModule({
-  imports: [BookstoreSharedModule, RouterModule.forChild(ENTITY_STATES)],
-  declarations: [AuthorComponent, AuthorDetailComponent, AuthorUpdateComponent, AuthorDeleteDialogComponent, AuthorDeletePopupComponent],
-  entryComponents: [AuthorComponent, AuthorUpdateComponent, AuthorDeleteDialogComponent, AuthorDeletePopupComponent],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  imports: [BookstoreSharedModule, RouterModule.forChild(authorRoute)],
+  declarations: [AuthorComponent, AuthorDetailComponent, AuthorUpdateComponent, AuthorDeleteDialogComponent],
+  entryComponents: [AuthorDeleteDialogComponent]
 })
 export class BookstoreAuthorModule {}

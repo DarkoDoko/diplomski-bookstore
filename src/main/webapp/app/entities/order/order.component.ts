@@ -1,65 +1,49 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
+import { HttpResponse } from '@angular/common/http';
 import { Subscription } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { JhiEventManager, JhiAlertService } from 'ng-jhipster';
+import { JhiEventManager } from 'ng-jhipster';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { IOrder } from 'app/shared/model/order.model';
-import { AccountService } from 'app/core';
 import { OrderService } from './order.service';
+import { OrderDeleteDialogComponent } from './order-delete-dialog.component';
 
 @Component({
   selector: 'jhi-order',
   templateUrl: './order.component.html'
 })
 export class OrderComponent implements OnInit, OnDestroy {
-  orders: IOrder[];
-  currentAccount: any;
-  eventSubscriber: Subscription;
+  orders?: IOrder[];
+  eventSubscriber?: Subscription;
 
-  constructor(
-    protected orderService: OrderService,
-    protected jhiAlertService: JhiAlertService,
-    protected eventManager: JhiEventManager,
-    protected accountService: AccountService
-  ) {}
+  constructor(protected orderService: OrderService, protected eventManager: JhiEventManager, protected modalService: NgbModal) {}
 
-  loadAll() {
-    this.orderService
-      .query()
-      .pipe(
-        filter((res: HttpResponse<IOrder[]>) => res.ok),
-        map((res: HttpResponse<IOrder[]>) => res.body)
-      )
-      .subscribe(
-        (res: IOrder[]) => {
-          this.orders = res;
-        },
-        (res: HttpErrorResponse) => this.onError(res.message)
-      );
+  loadAll(): void {
+    this.orderService.query().subscribe((res: HttpResponse<IOrder[]>) => (this.orders = res.body || []));
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadAll();
-    this.accountService.identity().then(account => {
-      this.currentAccount = account;
-    });
     this.registerChangeInOrders();
   }
 
-  ngOnDestroy() {
-    this.eventManager.destroy(this.eventSubscriber);
+  ngOnDestroy(): void {
+    if (this.eventSubscriber) {
+      this.eventManager.destroy(this.eventSubscriber);
+    }
   }
 
-  trackId(index: number, item: IOrder) {
-    return item.id;
+  trackId(index: number, item: IOrder): number {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    return item.id!;
   }
 
-  registerChangeInOrders() {
-    this.eventSubscriber = this.eventManager.subscribe('orderListModification', response => this.loadAll());
+  registerChangeInOrders(): void {
+    this.eventSubscriber = this.eventManager.subscribe('orderListModification', () => this.loadAll());
   }
 
-  protected onError(errorMessage: string) {
-    this.jhiAlertService.error(errorMessage, null, null);
+  delete(order: IOrder): void {
+    const modalRef = this.modalService.open(OrderDeleteDialogComponent, { size: 'lg', backdrop: 'static' });
+    modalRef.componentInstance.order = order;
   }
 }

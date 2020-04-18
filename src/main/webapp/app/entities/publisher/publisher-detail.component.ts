@@ -8,17 +8,15 @@ import { IPublisher } from 'app/shared/model/publisher.model';
   templateUrl: './publisher-detail.component.html'
 })
 export class PublisherDetailComponent implements OnInit {
-  publisher: IPublisher;
+  publisher: IPublisher | null = null;
 
   constructor(protected activatedRoute: ActivatedRoute) {}
 
-  ngOnInit() {
-    this.activatedRoute.data.subscribe(({ publisher }) => {
-      this.publisher = publisher;
-    });
+  ngOnInit(): void {
+    this.activatedRoute.data.subscribe(({ publisher }) => (this.publisher = publisher));
   }
 
-  previousState() {
+  previousState(): void {
     window.history.back();
   }
 }

@@ -1,4 +1,3 @@
-/* tslint:disable no-unused-expression */
 import { browser, ExpectedConditions as ec, promise } from 'protractor';
 import { NavBarPage, SignInPage } from '../../page-objects/jhi-page-objects';
 
@@ -9,8 +8,8 @@ const expect = chai.expect;
 describe('Category e2e test', () => {
   let navBarPage: NavBarPage;
   let signInPage: SignInPage;
-  let categoryUpdatePage: CategoryUpdatePage;
   let categoryComponentsPage: CategoryComponentsPage;
+  let categoryUpdatePage: CategoryUpdatePage;
   let categoryDeleteDialog: CategoryDeleteDialog;
 
   before(async () => {
@@ -26,6 +25,7 @@ describe('Category e2e test', () => {
     categoryComponentsPage = new CategoryComponentsPage();
     await browser.wait(ec.visibilityOf(categoryComponentsPage.title), 5000);
     expect(await categoryComponentsPage.getTitle()).to.eq('Categories');
+    await browser.wait(ec.or(ec.visibilityOf(categoryComponentsPage.entities), ec.visibilityOf(categoryComponentsPage.noResult)), 1000);
   });
 
   it('should load create Category page', async () => {
@@ -39,9 +39,12 @@ describe('Category e2e test', () => {
     const nbButtonsBeforeCreate = await categoryComponentsPage.countDeleteButtons();
 
     await categoryComponentsPage.clickOnCreateButton();
+
     await promise.all([categoryUpdatePage.setNameInput('name'), categoryUpdatePage.setDescriptionInput('description')]);
+
     expect(await categoryUpdatePage.getNameInput()).to.eq('name', 'Expected Name value to be equals to name');
     expect(await categoryUpdatePage.getDescriptionInput()).to.eq('description', 'Expected Description value to be equals to description');
+
     await categoryUpdatePage.save();
     expect(await categoryUpdatePage.getSaveButton().isPresent(), 'Expected save button disappear').to.be.false;
 

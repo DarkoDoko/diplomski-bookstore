@@ -1,65 +1,49 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
+import { HttpResponse } from '@angular/common/http';
 import { Subscription } from 'rxjs';
-import { filter, map } from 'rxjs/operators';
-import { JhiEventManager, JhiAlertService } from 'ng-jhipster';
+import { JhiEventManager } from 'ng-jhipster';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 
 import { IOrderItem } from 'app/shared/model/order-item.model';
-import { AccountService } from 'app/core';
 import { OrderItemService } from './order-item.service';
+import { OrderItemDeleteDialogComponent } from './order-item-delete-dialog.component';
 
 @Component({
   selector: 'jhi-order-item',
   templateUrl: './order-item.component.html'
 })
 export class OrderItemComponent implements OnInit, OnDestroy {
-  orderItems: IOrderItem[];
-  currentAccount: any;
-  eventSubscriber: Subscription;
+  orderItems?: IOrderItem[];
+  eventSubscriber?: Subscription;
 
-  constructor(
-    protected orderItemService: OrderItemService,
-    protected jhiAlertService: JhiAlertService,
-    protected eventManager: JhiEventManager,
-    protected accountService: AccountService
-  ) {}
+  constructor(protected orderItemService: OrderItemService, protected eventManager: JhiEventManager, protected modalService: NgbModal) {}
 
-  loadAll() {
-    this.orderItemService
-      .query()
-      .pipe(
-        filter((res: HttpResponse<IOrderItem[]>) => res.ok),
-        map((res: HttpResponse<IOrderItem[]>) => res.body)
-      )
-      .subscribe(
-        (res: IOrderItem[]) => {
-          this.orderItems = res;
-        },
-        (res: HttpErrorResponse) => this.onError(res.message)
-      );
+  loadAll(): void {
+    this.orderItemService.query().subscribe((res: HttpResponse<IOrderItem[]>) => (this.orderItems = res.body || []));
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
     this.loadAll();
-    this.accountService.identity().then(account => {
-      this.currentAccount = account;
-    });
     this.registerChangeInOrderItems();
   }
 
-  ngOnDestroy() {
-    this.eventManager.destroy(this.eventSubscriber);
+  ngOnDestroy(): void {
+    if (this.eventSubscriber) {
+      this.eventManager.destroy(this.eventSubscriber);
+    }
   }
 
-  trackId(index: number, item: IOrderItem) {
-    return item.id;
+  trackId(index: number, item: IOrderItem): number {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
+    return item.id!;
   }
 
-  registerChangeInOrderItems() {
-    this.eventSubscriber = this.eventManager.subscribe('orderItemListModification', response => this.loadAll());
+  registerChangeInOrderItems(): void {
+    this.eventSubscriber = this.eventManager.subscribe('orderItemListModification', () => this.loadAll());
   }
 
-  protected onError(errorMessage: string) {
-    this.jhiAlertService.error(errorMessage, null, null);
+  delete(orderItem: IOrderItem): void {
+    const modalRef = this.modalService.open(OrderItemDeleteDialogComponent, { size: 'lg', backdrop: 'static' });
+    modalRef.componentInstance.orderItem = orderItem;
   }
 }

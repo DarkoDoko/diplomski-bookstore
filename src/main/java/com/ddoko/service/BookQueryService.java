@@ -75,15 +75,15 @@ public class BookQueryService extends QueryService<Book> {
     }
 
     /**
-     * Function to convert ConsumerCriteria to a {@link Specification}
+     * Function to convert {@link BookCriteria} to a {@link Specification}
      * @param criteria The object which holds all the filters, which the entities should match.
      * @return the matching {@link Specification} of the entity.
-     */    
+     */
     protected Specification<Book> createSpecification(BookCriteria criteria) {
         Specification<Book> specification = Specification.where(null);
         if (criteria != null) {
             if (criteria.getId() != null) {
-                specification = specification.and(buildSpecification(criteria.getId(), Book_.id));
+                specification = specification.and(buildRangeSpecification(criteria.getId(), Book_.id));
             }
             if (criteria.getiSBN() != null) {
                 specification = specification.and(buildStringSpecification(criteria.getiSBN(), Book_.iSBN));

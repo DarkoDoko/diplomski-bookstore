@@ -34,7 +34,7 @@ public interface BookService {
      * @return the list of entities.
      */
     Page<Book> findAllWithEagerRelationships(Pageable pageable);
-    
+
     /**
      * Get the "id" book.
      *

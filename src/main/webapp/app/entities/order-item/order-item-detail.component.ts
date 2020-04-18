@@ -8,17 +8,15 @@ import { IOrderItem } from 'app/shared/model/order-item.model';
   templateUrl: './order-item-detail.component.html'
 })
 export class OrderItemDetailComponent implements OnInit {
-  orderItem: IOrderItem;
+  orderItem: IOrderItem | null = null;
 
   constructor(protected activatedRoute: ActivatedRoute) {}
 
-  ngOnInit() {
-    this.activatedRoute.data.subscribe(({ orderItem }) => {
-      this.orderItem = orderItem;
-    });
+  ngOnInit(): void {
+    this.activatedRoute.data.subscribe(({ orderItem }) => (this.orderItem = orderItem));
   }
 
-  previousState() {
+  previousState(): void {
     window.history.back();
   }
 }

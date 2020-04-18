@@ -45,10 +45,10 @@ public class BookCriteria implements Serializable, Criteria {
 
     private LongFilter categoryId;
 
-    public BookCriteria(){
+    public BookCriteria() {
     }
 
-    public BookCriteria(BookCriteria other){
+    public BookCriteria(BookCriteria other) {
         this.id = other.id == null ? null : other.id.copy();
         this.iSBN = other.iSBN == null ? null : other.iSBN.copy();
         this.title = other.title == null ? null : other.title.copy();

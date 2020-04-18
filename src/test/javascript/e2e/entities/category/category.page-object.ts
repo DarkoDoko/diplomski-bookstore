@@ -1,23 +1,25 @@
-import { browser, ExpectedConditions, element, by, ElementFinder } from 'protractor';
+import { element, by, ElementFinder } from 'protractor';
 
 export class CategoryComponentsPage {
   createButton = element(by.id('jh-create-entity'));
   deleteButtons = element.all(by.css('jhi-category div table .btn-danger'));
   title = element.all(by.css('jhi-category div h2#page-heading span')).first();
+  noResult = element(by.id('no-result'));
+  entities = element(by.id('entities'));
 
-  async clickOnCreateButton(timeout?: number) {
+  async clickOnCreateButton(): Promise<void> {
     await this.createButton.click();
   }
 
-  async clickOnLastDeleteButton(timeout?: number) {
+  async clickOnLastDeleteButton(): Promise<void> {
     await this.deleteButtons.last().click();
   }
 
-  async countDeleteButtons() {
+  async countDeleteButtons(): Promise<number> {
     return this.deleteButtons.count();
   }
 
-  async getTitle() {
+  async getTitle(): Promise<string> {
     return this.title.getText();
   }
 }
@@ -26,34 +28,35 @@ export class CategoryUpdatePage {
   pageTitle = element(by.id('jhi-category-heading'));
   saveButton = element(by.id('save-entity'));
   cancelButton = element(by.id('cancel-save'));
+
   nameInput = element(by.id('field_name'));
   descriptionInput = element(by.id('field_description'));
 
-  async getPageTitle() {
+  async getPageTitle(): Promise<string> {
     return this.pageTitle.getText();
   }
 
-  async setNameInput(name) {
+  async setNameInput(name: string): Promise<void> {
     await this.nameInput.sendKeys(name);
   }
 
-  async getNameInput() {
+  async getNameInput(): Promise<string> {
     return await this.nameInput.getAttribute('value');
   }
 
-  async setDescriptionInput(description) {
+  async setDescriptionInput(description: string): Promise<void> {
     await this.descriptionInput.sendKeys(description);
   }
 
-  async getDescriptionInput() {
+  async getDescriptionInput(): Promise<string> {
     return await this.descriptionInput.getAttribute('value');
   }
 
-  async save(timeout?: number) {
+  async save(): Promise<void> {
     await this.saveButton.click();
   }
 
-  async cancel(timeout?: number) {
+  async cancel(): Promise<void> {
     await this.cancelButton.click();
   }
 
@@ -66,11 +69,11 @@ export class CategoryDeleteDialog {
   private dialogTitle = element(by.id('jhi-delete-category-heading'));
   private confirmButton = element(by.id('jhi-confirm-delete-category'));
 
-  async getDialogTitle() {
+  async getDialogTitle(): Promise<string> {
     return this.dialogTitle.getText();
   }
 
-  async clickOnConfirmButton(timeout?: number) {
+  async clickOnConfirmButton(): Promise<void> {
     await this.confirmButton.click();
   }
 }

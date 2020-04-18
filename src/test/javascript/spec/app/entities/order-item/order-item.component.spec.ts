@@ -1,6 +1,5 @@
-/* tslint:disable max-line-length */
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { Observable, of } from 'rxjs';
+import { of } from 'rxjs';
 import { HttpHeaders, HttpResponse } from '@angular/common/http';
 
 import { BookstoreTestModule } from '../../../test.module';
@@ -17,8 +16,7 @@ describe('Component Tests', () => {
     beforeEach(() => {
       TestBed.configureTestingModule({
         imports: [BookstoreTestModule],
-        declarations: [OrderItemComponent],
-        providers: []
+        declarations: [OrderItemComponent]
       })
         .overrideTemplate(OrderItemComponent, '')
         .compileComponents();
@@ -45,7 +43,7 @@ describe('Component Tests', () => {
 
       // THEN
       expect(service.query).toHaveBeenCalled();
-      expect(comp.orderItems[0]).toEqual(jasmine.objectContaining({ id: 123 }));
+      expect(comp.orderItems && comp.orderItems[0]).toEqual(jasmine.objectContaining({ id: 123 }));
     });
   });
 });
