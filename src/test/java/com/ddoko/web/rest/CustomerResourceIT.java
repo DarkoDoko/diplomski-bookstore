@@ -38,13 +38,8 @@ public class CustomerResourceIT {
     private static final String DEFAULT_LAST_NAME = "AAAAAAAAAA";
     private static final String UPDATED_LAST_NAME = "BBBBBBBBBB";
 
-<<<<<<< HEAD
-    private static final String DEFAULT_EMAIL = "b[@-x.;q";
-    private static final String UPDATED_EMAIL = "x2@?.m";
-=======
     private static final String DEFAULT_EMAIL = "KM/'p@Z.kOi]5L";
     private static final String UPDATED_EMAIL = "<IVj7J@Us.L{\\XL";
->>>>>>> jhipster_upgrade
 
     private static final String DEFAULT_TELEPHONE = "AAAAAAAAAA";
     private static final String UPDATED_TELEPHONE = "BBBBBBBBBB";
